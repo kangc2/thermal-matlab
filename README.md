@@ -8,7 +8,9 @@ MATLAB code for our senior capstone project focusing on the thermal efficiency
 
 ## Functionalities
 Define Inputs:
+
 Define Outputs
+
 Create a Flow diagram (decision tree)
 
 Look at diagram and split into meaningful functions
