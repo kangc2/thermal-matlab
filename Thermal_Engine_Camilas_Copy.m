@@ -71,4 +71,4 @@ VA = (V1A*Po) / P;
 delta_V2 = ( mPCM*(vP - v1P) ) + ( mH*(vH - voH) ) + (VA - V1A);
 
 vpasolve(delta_V1 - delta_V2 == 0, P)
-
+   
