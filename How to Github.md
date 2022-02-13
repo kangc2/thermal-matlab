@@ -11,6 +11,9 @@ Git is the software that tracks the history of changes that people and the team 
 
 A Github workflow is listed below on the basic workflow when using Github. It starts by creating a repository, and then cloning the repository to your computer, creating a new branch, committing changes, pulling requests, peer reviewing, and then editting the final document.
 
+The first steps are the create and clone a repository.
+
+The actual editting and changing the code part is creating a branch, commit changes, pull requests, and committing to the main document.
 
 ## Repository
 References used: 
@@ -41,8 +44,17 @@ This is where 'Git' itself comes in and requires each person to have their own v
 
 ## Github Desktop app, Configurations and How to Clone the Repository
 References Used: https://docs.github.com/en/desktop/installing-and-configuring-github-desktop
-With Github Desktop App installed, this is how you clone the repository:
+Install Github Desktop App with this guide here, just follow how to install it and adding in your account: https://docs.github.com/en/desktop/installing-and-configuring-github-desktop/installing-and-authenticating-to-github-desktop/authenticating-to-github
 
+With Github Desktop App installed, this is how you clone the repository:
+1. Go to Files -> Clone Repository
+2. Edit to where you want it stored on your computer
+3. Save, should be a file on your computer :) 
+4. If you don't see the repository, make sure you're using the correct account that the repository is linked to.
+
+### A few features on the Github App: (all the weird terminology is explain below)
+#### "Fetch Origin"
+Its the rightmost tab on the app's interface. As commits or changes are done on the project, you can keep your local copy of the project in sync my pulling from the remote repository. As you sync you
 
 
 ## Branches 
