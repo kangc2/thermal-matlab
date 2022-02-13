@@ -1,15 +1,25 @@
 References used: 
 1. https://docs.github.com/en/get-started/quickstart/hello-world
-2. https://docs.github.com/en/get-started/using-git/about-git
+
 
 Github is where we can change and edit the same code files individually while having all of our files tracked and saved online. The purpose is to organize our code and to be able to easily manage the code files without running into problems in the future. Github is a place that stores and organizes our project onto the cloud, so anyone with internet can access it any time. This also means that any changes we want to make requires internet.
 
-To actually use Github as a team collaboration and make changes to our code as a team, we need to download the Github app onto the desktop or get a Git software (like Gitbash) 
+To actually use Github as a team, we need to download the Github app onto the desktop or get a Git software.
+
+## What is 'Git' and 'Github'?
+Git is the software that tracks the history of changes that people and the team makes on projects. It is different from Github. Github is the internet storage place for our project and provides tools to help teams to collaborate better like command line features, issues (threaded discussions), pull requests, code review, or add-in apps. Github uses Git to track our changes, so that is why we need to install a separate Git software to use Github. In the references used lists Git command lines to use in applications like GitHub Desktop app to get started.
+
+A Github workflow is listed below on the basic workflow when using Github. It starts by creating a repository, and then cloning the repository to your computer, creating a new branch, committing changes, pulling requests, peer reviewing, and then editting the final document.
+
 
 ## Repository
-The repository is the location of all our of files, images, folders, etc. It also shows all of the changes and updates made to each file. Right now- 'thermal-matlab' is our repository name and where all the documentation and files are in. Repositories can contain folders and files, images, videos, spreadsheets, and data sets -- anything your project needs.
+References used: 
+1. https://docs.github.com/en/get-started/using-git/about-git
+2. https://docs.github.com/en/get-started/quickstart/github-flow
 
-The README.md file is to give information of our project and code files. 
+The starting point of Github is the repository. The repository is the location of all our of project files. It also shows all of the changes and updates made to each file. Right now- 'thermal-matlab' is our repository name and where all the documentation and files are in. Repositories can contain folders and files, images, videos, spreadsheets, and data sets -- anything your project needs. The respository is already made for this project but for reference in the future, below is how you make a repository.
+
+Every repository has a README.md file. The README.md file is to outlines the information of our project and code files. 
 
 To create a repository:
 1. In the upper-right corner of any page, use the  drop-down menu, and select New repository
@@ -17,6 +27,22 @@ To create a repository:
 3. In the Description box, write a short description.
 4. Select Add a README file.
 5. Click Create repository.
+
+## Cloning the Repository
+References used: 
+1. https://swcarpentry.github.io/git-novice/08-collab/index.html
+2. https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository
+
+This means to copy the repository onto your computer locally so you can make changes, edits, add and remove files, and push larger commits. When you clone the repository, you download the full copy of the repository at that point in time. If other people made and committed changes, you can add those changes to your copy of the repository. 
+
+Changes to the text files like this one and the README doesn't require cloning, and can be editted here. But with files that use a different software, in our case, MATLAB, we may want to consider making a copy of this repository onto your computer. This requires to download an extra app onto your computer. 
+
+This is where 'Git' itself comes in and requires each person to have their own verison of Git downloaded. Github reccomends using their Github Desktop App, but you can download a Git software like Gitbash instead. I'm going to only go over how you can clone your repository on Github Desktop App, but there's other references if you want to use something else.
+
+## Github Desktop app, Configurations and How to Clone the Repository
+References Used: https://docs.github.com/en/desktop/installing-and-configuring-github-desktop
+With Github Desktop App installed, this is how you clone the repository:
+
 
 
 ## Branches 
@@ -31,7 +57,7 @@ story-joe-edit-reviewed.txt
 
 Github uses branches for keeping bug fixes and feature work separate from our main (production) branch. When a change is ready, they merge their branch into the 'main' branch.
 Everyone starts off working in the main branh which is where all edits are officially published.
-When you create a branch off the main branch, you're making a copy, or snapshot, of main as it was at that point in time. If someone else made changes to the main branch while youwere working on your branch, you could pull in those updates.
+When you create a branch off the main branch, you're making a copy, or snapshot, of main as it was at that point in time. If someone else made changes to the main branch while you were working on your branch, you could pull in those updates. Everytime you want to change the code file or work on it, create a branch. If everyone wants to work on the same file and makes their own branches, it won't affect the file at all and as many people can work on it at once. Once the workflow is complete, the branch can be deleted.
 
 To create a branch:
 1. Click the code tab in repository
@@ -42,19 +68,13 @@ To create a branch:
 ## Making and Committing Changes
 In a new branch (where it is just you making edits thats not affecting what is already published or being editted at the same time) you can make changes to the files in your repository. Every time you edit and want to make a final change to the file, Github is set up that after you finish editting, you can write a commit message, describing everything you changed and why. They help capture the history of the what changes and who changed what and why it was changed.
 
-To commit a change in the GitHub Desktop:
+To commit a change in the GitHub Webiste:
 1. Open the file and click edit (pencil icon)
 2. Edit file
 3. At the bottom of page, there is a commit changes box to add comments
 4. Click commit changes
-5. 
 
-## Cloning the Repository
-References used: 
-1. https://swcarpentry.github.io/git-novice/08-collab/index.html
-2. https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository
+To commit a change on your computer (using Desktop App):
 
-This means to copy the repository onto your computer locally so you can make changes, edits, add and remove files, and push larger commits. 
-When you clone the repository, you download the full copy of the repository at that point in time. If other people made and committed changes, you can add those changes to your copy of the repository. 
 
-This requires each person to have Git, 
+Reference used to edit .md files: https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax
