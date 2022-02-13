@@ -10,8 +10,11 @@ The README.md file is to give information of our project and code files.
 ## Branches 
 The main purpose is to avoid saving different verisons of the same file. Branches accomplish similar goals in GitHub repositories.
 Something like this can be easily avoided by using branches:
+
 story.txt
+
 story-joe-edit.txt
+
 story-joe-edit-reviewed.txt
 
 Github uses branches for keeping bug fixes and feature work separate from our main (production) branch. When a change is ready, they merge their branch into the 'main' branch.
