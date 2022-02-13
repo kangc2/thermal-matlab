@@ -53,12 +53,12 @@ With Github Desktop App installed, this is how you clone the repository:
 4. If you don't see the repository, make sure you're using the correct account that the repository is linked to.
 
 ### A few features on the Github App: (all the weird terminology is explain below)
-#### "Fetch Origin"
-Its the rightmost tab on the app's interface. As commits or changes are done on the project, you can keep your local copy of the project in sync my pulling from the remote repository. As you sync you
+#### "Pull Origin"
+Its the rightmost tab on the app's interface. As commits or changes are done on the branch, you can keep your local copy of the project in sync my pulling from the remote repository. As you sync, the branch that you're in updates. If you want to change branches, click the drop down menu under 'current branch' and change there.
 
 
 ## Branches 
-The main purpose is to avoid saving different verisons of the same file. Branches accomplish similar goals in GitHub repositories.
+The main purpose is to avoid saving different verisons of the same file and branches accomplish similar goals in GitHub repositories. Branches also enables your collaborators to see your ongoing work too.
 Something like this can be easily avoided by using branches:
 
 story.txt
@@ -67,8 +67,9 @@ story-joe-edit.txt
 
 story-joe-edit-reviewed.txt
 
-Github uses branches for keeping bug fixes and feature work separate from our main (production) branch. When a change is ready, they merge their branch into the 'main' branch.
-Everyone starts off working in the main branh which is where all edits are officially published.
+Github uses branches for keeping bug fixes and feature work separate from our main (production) branch. When a change is ready, they merge their branch into the 'main' branch. When you make a new branch, you can do whatever you want with the repository (add and edit files, rename a file, move files, delete anything). In a new branch will not change anything in the main branch.
+Everyone starts off working in the main branch which is where all edits are officially published.
+
 When you create a branch off the main branch, you're making a copy, or snapshot, of main as it was at that point in time. If someone else made changes to the main branch while you were working on your branch, you could pull in those updates. Everytime you want to change the code file or work on it, create a branch. If everyone wants to work on the same file and makes their own branches, it won't affect the file at all and as many people can work on it at once. Once the workflow is complete, the branch can be deleted.
 
 To create a branch:
@@ -77,8 +78,16 @@ To create a branch:
 3. Type in a branch name into text box
 4. Click create branch
 
-## Making and Committing Changes
+## Committing and Pushing Changes
+This is where all the edits happen. 
+
 In a new branch (where it is just you making edits thats not affecting what is already published or being editted at the same time) you can make changes to the files in your repository. Every time you edit and want to make a final change to the file, Github is set up that after you finish editting, you can write a commit message, describing everything you changed and why. They help capture the history of the what changes and who changed what and why it was changed.
+
+Commit means to save your edits into your local repository. Ideally, each commit contains an isolated, complete change like 'fix typo' or 'increase rate limit'. This makes it easy to revert your changes if you decide to take a different approach. For example, if you want to rename a variable and add some tests, put the variable rename in one commit and the tests in another commit. Later, if you want to keep the tests but revert the variable rename, you can revert the specific commit that contained the variable rename. If you put the variable rename and tests in the same commit or spread the variable rename across multiple commits, you would spend more effort reverting your changes.
+
+Push means to transfer your commits to the remote location of reporsitory. This means that you can access your work from any device. It also means that your collaborators can see your work, answer questions, and make suggestions or contributions. 
+
+Continue to commit and push till ready to peer review.
 
 To commit a change in the GitHub Webiste:
 1. Open the file and click edit (pencil icon)
@@ -86,7 +95,13 @@ To commit a change in the GitHub Webiste:
 3. At the bottom of page, there is a commit changes box to add comments
 4. Click commit changes
 
-To commit a change on your computer (using Desktop App):
+To commit and push a change on your computer (using Desktop App):
+1. From your cloned repository, open the file
+2. Edit File normally
+3. Save and go back to desktop app and add comments and click 'commit to 'branch name''
+4. Click push changes too
 
+## Pull Request
+When we are done comitting, its time to peer review.
 
 Reference used to edit .md files: https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax
