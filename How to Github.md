@@ -102,6 +102,41 @@ To commit and push a change on your computer (using Desktop App):
 4. Click push changes too
 
 ## Pull Request
-When we are done comitting, its time to peer review.
+Referenced used: 
+1. https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request
+2. https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax
+3. https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/collaborating-on-repositories-with-code-quality-features/about-status-checks
+
+When we are done comitting, its time to peer review. Creating a pull request just means to ask collaborators for feedback on your changes. Pull request reviews are considered the most important part of the process and can be so valuable that some repositories require an approving review before pull requests can be merged. Pull Request can be done on the website or the Github app (not applicable to our project).
+
+Steps to make a pull request:
+On GitHub.com, navigate to the main page of the repository.
+
+1. In the "Branch" menu, choose the branch that contains your commits.
+2. Above the list of files, click  Pull request.
+3. Use the base branch dropdown menu to select the branch you'd like to merge your changes into, then use the compare branch drop-down menu to choose the topic branch you made your changes in.
+4. Type a title and description for your pull request.
+5. To create a pull request that is ready for review, click Create Pull Request. To create a draft pull request, use the drop-down and select Create Draft Pull Request, then click Draft Pull Request. For more information about draft pull requests, see "About pull requests."
+
+On the Desktop App:
+1. Click Create Pull Request. GitHub Desktop will open your default browser to take you to GitHub.
+2. 
+
+
+When you create a pull request, include a summary of the changes and what problem they solve. You can include images, links, and tables to help convey this information. If your pull request addresses an issue, link the issue so that issue stakeholders are aware of the pull request and vice versa. Also in your pull request, you can add comments to specific lines of the code and @ people who you want to see this review. 
+
+See Reference 2: Basic syntax of pull request for your own knowledge, but not used for this project
+See Reference 3: you can configure your repository to have a check list on pull requests, you will see any checks that failed on your pull request. This helps you catch errors before merging your branch.
+
+## Finishing up a round of editting
+After creating a new branch, committing/pushing changes, and finishiing/merging a pull request, then the cycle of editting a file is completed and here are the final steps listed.
+1. delete your branch after the pull request is completely finish. This prevents anyone else messing with it by accident when everything is already done. The history from that branch is already recorded and track so no information is lost.
+
+Once this branch is deleted, time to complete a whole new cycle of edits.
+
+
+
+
+
 
 Reference used to edit .md files: https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax
