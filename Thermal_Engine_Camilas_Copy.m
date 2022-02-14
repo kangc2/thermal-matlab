@@ -16,7 +16,7 @@
 % Original 2/7: Rivan
 % 1. Wrote up Data Input & Calculations Sections
 
-
+   
 %%
 clc; clear; close all
 %% Data Input
