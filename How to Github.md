@@ -52,7 +52,7 @@ With Github Desktop App installed, this is how you clone the repository:
 
 ### A few features on the Github App: (all the weird terminology is explain below)
 #### "Pull Origin"
-Its the rightmost tab on the app's interface. As commits or changes are done on the branch, you can keep your local copy of the project in sync my pulling from the remote repository. As you sync, the branch that you're in updates. If you want to change branches, click the drop down menu under 'current branch' and change there.
+Its the rightmost tab on the app's interface. As commits or changes are done on the branch, you can keep your local copy of the project in sync my pulling from the remote repository. As you sync, the branch that you're in updates. If you want to change branches, click the drop down menu under 'current branch' and change there. Good practice is to pull origin to make sure you're working on the latest changes.
 
 
 ## Branches 
