@@ -9,11 +9,9 @@ To actually use Github as a team, we need to download the Github app onto the de
 ## What is 'Git' and 'Github'?
 Git is the software that tracks the history of changes that people and the team makes on projects. It is different from Github. Github is the internet storage place for our project and provides tools to help teams to collaborate better like command line features, issues (threaded discussions), pull requests, code review, or add-in apps. Github uses Git to track our changes, so that is why we need to install a separate Git software to use Github. In the references used lists Git command lines to use in applications like GitHub Desktop app to get started.
 
-A Github workflow is listed below on the basic workflow when using Github. It starts by creating a repository, and then cloning the repository to your computer, creating a new branch, committing changes, pulling requests, peer reviewing, and then editting the final document.
+A Github workflow is listed below on the basic workflow when using Github. It starts by creating a repository, and then cloning the repository to your computer.
 
-The first steps are the create and clone a repository.
-
-The actual editting and changing the code part is creating a branch, commit changes, pull requests, and committing to the main document.
+The actual editting and changing the code part is creating a branch, commit changes, pull requests, and committing to the main document. This is the process that repeats with every major edit.
 
 ## Repository
 References used: 
