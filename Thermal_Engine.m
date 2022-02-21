@@ -7,14 +7,6 @@
 % PNNL's Mathmatica Script
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TITLE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Notes: 
-
-% Updated 2/10: Camila
-% 1. Used vpasolve() to find P
-% been playing around with the formatting/documenting
-
-% Original 2/7: Rivan
-% 1. Wrote up Data Input & Calculations Sections
 
    
 %%
@@ -24,10 +16,10 @@ clc; clear; close all
 % Working fluid = Water
 % Cylinder Material = TA2M (Titanium alloy)
 
-T = 29; %[degC]
+T = 29; % Working Temperature [degC]
 Thigh = T; % High Temperature
 Tm = 18.2; % Melting Temperature of PCM [degC]
-Tlow = 5; %L ow Temperature [degC]
+Tlow = 5; % Low Temperature [degC]
 csd = 1.64; % Specific heat in solid state [kJ/kg K]
 cld = 2.09; % Specific heat in liquid state [kJ/kg K]
 Lh = 236; % Latent heat of fusion [kJ/kg]
@@ -44,8 +36,14 @@ ar = 6.573/100; % Volume fraction of residual air
 V1N = 2e-03; % Initial Volume of N2 gas
 
 %% Calculations
-voP = ( (1.0307e03 - ( 1.2596*(T + 273.15) ) ) + ...
-    (1.8186e03*( (T + 273.15)^2) )-(1.9555e-06*( (T + 273.15)^3) ) )^-1;
+% 1. Finding Specific Volume of PCM [vP]
+% 2. Finding Specific Volume of Hydraulic Fluid [vH]
+% 3. Finding Volume Of Cylinder
+% 4. Finding change of Inner Diameter of Tube Under Internal Pressure
+% 5. Finding Max Pressure [P2]
+% 6. Finding Efficiency [Eff] 
+voP = ( (1.0307e03 - ( 1.2596*(T + 273.15) )  + ...
+    (1.8186e-3* (T + 273.15)^2) -(1.9555e-6* (T + 273.15)^3) ) )^-1;
 CP = 2.66e-04;
 BP = 102.12;
 v1P = 1/rhoS; % Specific volume of PCM in liquid state
@@ -70,5 +68,23 @@ vH = voH - (CH*log10(1 + ( (P - Po) / BH) ) );
 VA = (V1A*Po) / P;
 delta_V2 = ( mPCM*(vP - v1P) ) + ( mH*(vH - voH) ) + (VA - V1A);
 
-vpasolve(delta_V1 - delta_V2 == 0, P)
-   
+P2 = vpasolve(delta_V1 - delta_V2 == 0, P); % P2 is the 1st instance where delta_V1 - delta_V2 == 0
+
+P = double(P2); % Convert to a numerical value with precision
+f = rPCM;
+delta_a1 = ( ( (P - Po)*a1*(1 - v^2) ) / Ey)*( ( (b1^2 + a1^2) / (b1^2 - a1^2) ) + (v / (1 - v) ) );
+delta_V1 = (pi / 4)*(L1*( ( (2*a1) + delta_a1)*delta_a1) );
+
+Pa = (P2 / V1N)*(delta_V1 + V1N - V1A*( (Po / P2) - 1) ...
+   - (V*f / v1P)*(voP - CP*log10(1 + ((P2 - Po) / BP) ) - v1P) + ((V*(1 - f) - V1A) / v1H)*CH*log10(1 + ((P2 - Po) / BH) ));
+
+Qin = mPCM*csd*(Tm - Tlow) + mPCM*Lh + mPCM*cld*(Thigh - Tm);
+Est = -Pa*1e6*V1N*log(1 - (mPCM / V1N)*((1 / rhoL) - (1 / rhoS)) );
+Eff = Est / (Qin*1e3) * 100;
+
+%% Outputs
+V
+P2
+Pa
+f = f*100
+Eff
