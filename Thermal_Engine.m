@@ -81,8 +81,8 @@ Pa = (P2 / V1N)*(delta_V1 + V1N - V1A*( (Po / P2) - 1) ...
    - (V*f / v1P)*(voP - CP*log10(1 + ((P2 - Po) / BP) ) - v1P) + ((V*(1 - f) - V1A) / v1H)*CH*log10(1 + ((P2 - Po) / BH) ));
 
 Qin = mPCM*csd*(Tm - Tlow) + mPCM*Lh + mPCM*cld*(Thigh - Tm);
-Est = -Pa*1e-6*V1N*log(1 - (mPCM / V1N)*((1 / rhoL) - (1 / rhoS)) );
-Eff = Est / (Qin*1e-3) * 100;
+Est = -Pa*1e6*V1N*log(1 - (mPCM / V1N)*((1 / rhoL) - (1 / rhoS)) );
+Eff = Est / (Qin*1e3) * 100;
 
 %% Outputs
 V
