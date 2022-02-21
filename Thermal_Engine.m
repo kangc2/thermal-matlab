@@ -68,8 +68,8 @@ vH = voH - (CH*log10(1 + ( (P - Po) / BH) ) );
 VA = (V1A*Po) / P;
 delta_V2 = ( mPCM*(vP - v1P) ) + ( mH*(vH - voH) ) + (VA - V1A);
 
-P2 = vpasolve(delta_V1 - delta_V2 == 0, P);
-%%
+P2 = vpasolve(delta_V1 - delta_V2 == 0, P); % P2 is the 1st instance where delta_V1 - delta_V2 == 0
+
 P = double(P2); % Convert to a numerical value with precision
 f = rPCM;
 delta_a1 = ( ( (P - Po)*a1*(1 - v^2) ) / Ey)*( ( (b1^2 + a1^2) / (b1^2 - a1^2) ) + (v / (1 - v) ) );
