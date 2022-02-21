@@ -36,6 +36,12 @@ ar = 6.573/100; % Volume fraction of residual air
 V1N = 2e-03; % Initial Volume of N2 gas
 
 %% Calculations
+% 1. Finding Specific Volume of PCM [vP]
+% 2. Finding Specific Volume of Hydraulic Fluid [vH]
+% 3. Finding Volume Of Cylinder
+% 4. Finding change of Inner Diameter of Tube Under Internal Pressure
+% 5. Finding Max Pressure [P2]
+% 6. Finding Efficiency [Eff] 
 voP = ( (1.0307e03 - ( 1.2596*(T + 273.15) ) ) + ...
     (1.8186e03*( (T + 273.15)^2) )-(1.9555e-06*( (T + 273.15)^3) ) )^-1;
 CP = 2.66e-04;
