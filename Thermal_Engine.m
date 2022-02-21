@@ -69,16 +69,27 @@ VA = (V1A*Po) / P;
 delta_V2 = ( mPCM*(vP - v1P) ) + ( mH*(vH - voH) ) + (VA - V1A);
 
 P2 = vpasolve(delta_V1 - delta_V2 == 0, P);
+%%
+P = P2;
 f = rPCM;
+delta_a1 = ( ( (P - Po)*a1*(1 - v^2) ) / Ey)*( ( (b1^2 + a1^2) / (b1^2 - a1^2) ) + (v / (1 - v) ) );
+delta_V1 = (pi / 4)*(L1*( ( (2*a1) + delta_a1)*delta_a1) );
+vP = 1.3e-03 - (2.66e-04*log10( 1 + ( (P-Po) / 102.12) ) );
+v1H = voH;
+vH = voH - (CH*log10(1 + ( (P - Po) / BH) ) );
+VA = (V1A*Po) / P;
+delta_V2 = ( mPCM*(vP - v1P) ) + ( mH*(vH - voH) ) + (VA - V1A);
 
-Pa = (P2 / V1N)*(delta_V1 + V1N - V1A*( (Po / P2) - 1) - (voP - CP-log10(1 + ((P2 - Po) / BP) ) - v1P) + ((V*(1 - f) - V1A) / v1H)*CH*log10(1 + ((P2 - Po) / BH) );
 
-Qin = mPCM*csd*(Tm - Tlow) + mPCM*Ln + mPCM*cld*(Thigh - Tm);
+Pa = (P2 / V1N)*(delta_V1 + V1N - V1A*( (Po / P2) - 1) - (V*f / v1P)*(voP - CP*log10(1 + ((P2 - Po) / BP) ) - v1P) + ((V*(1 - f) - V1A) / v1H)*CH*log10(1 + ((P2 - Po) / BH) ));
+
+Qin = mPCM*csd*(Tm - Tlow) + mPCM*Lh + mPCM*cld*(Thigh - Tm);
 Est = -Pa*1e-6*V1N*log(1 - (mPCM / V1N)*((1 / rhoL) - (1 / rhoS)) );
 Eff = Est / (Qin*1e-3) * 100;
 
+%% Outputs
 V
 P2
 Pa
-f*100
+f = f*100
 Eff
