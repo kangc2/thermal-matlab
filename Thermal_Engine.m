@@ -7,14 +7,6 @@
 % PNNL's Mathmatica Script
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TITLE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Notes: 
-
-% Updated 2/10: Camila
-% 1. Used vpasolve() to find P
-% been playing around with the formatting/documenting
-
-% Original 2/7: Rivan
-% 1. Wrote up Data Input & Calculations Sections
 
    
 %%
