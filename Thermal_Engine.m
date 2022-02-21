@@ -16,10 +16,10 @@ clc; clear; close all
 % Working fluid = Water
 % Cylinder Material = TA2M (Titanium alloy)
 
-T = 29; %[degC]
+T = 29; % Working Temperature [degC]
 Thigh = T; % High Temperature
 Tm = 18.2; % Melting Temperature of PCM [degC]
-Tlow = 5; %L ow Temperature [degC]
+Tlow = 5; % Low Temperature [degC]
 csd = 1.64; % Specific heat in solid state [kJ/kg K]
 cld = 2.09; % Specific heat in liquid state [kJ/kg K]
 Lh = 236; % Latent heat of fusion [kJ/kg]
@@ -68,5 +68,17 @@ vH = voH - (CH*log10(1 + ( (P - Po) / BH) ) );
 VA = (V1A*Po) / P;
 delta_V2 = ( mPCM*(vP - v1P) ) + ( mH*(vH - voH) ) + (VA - V1A);
 
-vpasolve(delta_V1 - delta_V2 == 0, P)
-   
+P2 = vpasolve(delta_V1 - delta_V2 == 0, P);
+f = rPCM;
+
+Pa = (P2 / V1N)*(delta_V1 + V1N - V1A*( (Po / P2) - 1) - (voP - CP-log10(1 + ((P2 - Po) / BP) ) - v1P) + ((V*(1 - f) - V1A) / v1H)*CH*log10(1 + ((P2 - Po) / BH) );
+
+Qin = mPCM*csd*(Tm - Tlow) + mPCM*Ln + mPCM*cld*(Thigh - Tm);
+Est = -Pa*1e-6*V1N*log(1 - (mPCM / V1N)*((1 / rhoL) - (1 / rhoS)) );
+Eff = Est / (Qin*1e-3) * 100;
+
+V
+P2
+Pa
+f*100
+Eff
