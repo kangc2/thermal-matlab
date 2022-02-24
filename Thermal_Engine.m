@@ -37,29 +37,29 @@ V1N = 2e-03; % Initial Volume of N2 gas
 
 %% Calculations
 % 1. Finding Specific Volume of PCM [vP]
-% 2. Finding Specific Volume of Hydraulic Fluid [vH]
-% 3. Finding Volume Of Cylinder
-% 4. Finding change of Inner Diameter of Tube Under Internal Pressure
-% 5. Finding Max Pressure [P2]
-% 6. Finding Efficiency [Eff] 
 voP = ( (1.0307e03 - ( 1.2596*(T + 273.15) )  + ...
     (1.8186e-3* (T + 273.15)^2) -(1.9555e-6* (T + 273.15)^3) ) )^-1;
 CP = 2.66e-04;
 BP = 102.12;
 v1P = 1/rhoS; % Specific volume of PCM in liquid state
+VPCM = mPCM*v1P;
+
+% 2. Finding Specific Volume of Hydraulic Fluid [vH]
 BH = ( 2672.9 + (15.97*T) - (0.166*(T^2) ) )*1e-01;
 voH = 1e-03;
 v1H = voH;
 CH = 0.3150*voH;
+
+% 3. Finding Volume Of Cylinder
 V = pi*L1*( (a1 / 2)^2 ); % Inner volume of Cylinder
-VPCM = mPCM*v1P;
+
 V1A = ar*V; % Volume of residual air
 rPCM = VPCM / V;
 VH1 = ( V*(1 - rPCM) ) - V1A;
 mH = ( (V*(1 - rPCM) ) - V1A) / v1H;
-
+f = rPCM;
+% 4. Finding change of Inner Diameter of Tube Under Internal Pressure
 syms P;
-
 delta_a1 = ( ( (P - Po)*a1*(1 - v^2) ) / Ey)*( ( (b1^2 + a1^2) / (b1^2 - a1^2) ) + (v / (1 - v) ) );
 delta_V1 = (pi / 4)*(L1*( ( (2*a1) + delta_a1)*delta_a1) );
 vP = 1.3e-03 - (2.66e-04*log10( 1 + ( (P-Po) / 102.12) ) );
@@ -67,11 +67,10 @@ v1H = voH;
 vH = voH - (CH*log10(1 + ( (P - Po) / BH) ) );
 VA = (V1A*Po) / P;
 delta_V2 = ( mPCM*(vP - v1P) ) + ( mH*(vH - voH) ) + (VA - V1A);
-
+% 5. Finding Max Pressure [P2]
 P2 = vpasolve(delta_V1 - delta_V2 == 0, P); % P2 is the 1st instance where delta_V1 - delta_V2 == 0
-
 P = double(P2); % Convert to a numerical value with precision
-f = rPCM;
+% 6. Finding Efficiency [Eff] 
 delta_a1 = ( ( (P - Po)*a1*(1 - v^2) ) / Ey)*( ( (b1^2 + a1^2) / (b1^2 - a1^2) ) + (v / (1 - v) ) );
 delta_V1 = (pi / 4)*(L1*( ( (2*a1) + delta_a1)*delta_a1) );
 
@@ -81,6 +80,7 @@ Pa = (P2 / V1N)*(delta_V1 + V1N - V1A*( (Po / P2) - 1) ...
 Qin = mPCM*csd*(Tm - Tlow) + mPCM*Lh + mPCM*cld*(Thigh - Tm);
 Est = -Pa*1e6*V1N*log(1 - (mPCM / V1N)*((1 / rhoL) - (1 / rhoS)) );
 Eff = Est / (Qin*1e3) * 100;
+
 
 %% Outputs
 V
