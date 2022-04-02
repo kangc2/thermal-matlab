@@ -49,7 +49,7 @@ engine.ar = 6.573 / 100; % Volume fraction of residual air
 %% Calculations
 % 1a. Find specific volume of PCM under ambient pressure Po [voP]
 engine.voP = specificVolPCM(T);
-% 1c. Find the volume of PCM (liquid state) [v1P]
+% 1b. Find the volume of PCM (liquid state) [v1P]
 [engine.v1P, engine.VPCM] = volPCM(engine.rhoS, engine.mPCM);
 
 % 3. Find inner volume of cylinder, Volume fraction of air and PCM 
@@ -75,7 +75,15 @@ engine.Eff = findEfficiency(engine.Est, engine.Qin);
 % Convert volume fraction to percentage
 engine.f = engine.f*100;
 
-engine
+engine;
+%% Testing: changing the length of engine
+engine(2) = engine;
+engine(2).name = 'Changing Length';
+engine(2).L1 = 1:0.1:3; % Length of the cylinder [m]
+for i = 1:length(L1)
+    
+end
+
 %% Functions
 % 1. Finding Specific Volume of PCM [vP]
 % a. Find specific volume of PCM under ambient pressure Po [voP]
@@ -83,13 +91,11 @@ function voP = specificVolPCM(T)
     voP = ( (1.0307e03 - ( 1.2596*(T + 273.15) )  + ...
         (1.8186e-3* (T + 273.15)^2) -(1.9555e-6* (T + 273.15)^3) ) )^-1;
 end
-
 % b. Find the volume of PCM (liquid state) [v1P]
 function [v1P, VPCM] = volPCM(rhoS, mPCM)
     v1P = 1/rhoS; % Specific volume of PCM in liquid state
     VPCM = mPCM*v1P;
 end
-% c. Find specific volume of PCM at states 2 -> 3 (at pressure P) [vP]
 
 % 3. Find inner volume of cylinder, Volume fraction of air and PCM 
 function [V,V1A, f,V1H, mH] = findVolume(a1, L1, ar, VPCM, v1H)
