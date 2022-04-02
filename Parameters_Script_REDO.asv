@@ -47,18 +47,29 @@ engine.CH = 0.3150*engine.voH;
 engine.V1N = 2e-03; % Initial Volume of N2 gas
 engine.ar = 6.573 / 100; % Volume fraction of residual air
 %% Calculations
+% 1a. Find specific volume of PCM under ambient pressure Po [voP]
 engine.voP = specificVolPCM(T);
+
 [engine.v1P, engine.VPCM] = volPCM(engine.rhoS, engine.mPCM);
+
 [engine.V,engine.V1A, engine.f,engine.V1H, engine.mH] = findVolume(engine.a1, engine.L1, engine.ar, engine.VPCM, engine.v1H);
+
 engine.P2 = findPressure(Po, engine.a1, engine.v, engine.Ey, engine.b1, engine.V1A, ...
     engine.mPCM, engine.mH, engine.voH, engine.L1, engine.CH, engine.BH, engine.v1P);
+
 engine.delta_V1 = findChangeInnerVolume(Po, engine.a1, engine.b1, engine.L1, engine.v, engine.Ey, engine.P2);
+
 engine.Pa = findPa(Po, engine.P2, engine.V1N, engine.delta_V1, engine.V1A, engine.V, engine.f, engine.v1P, ...
     engine.voP, engine.CP, engine.BP, engine.CH, engine.BH, engine.v1H);
+
 engine.Est = findEst(engine.Pa, engine.V1N, engine.mPCM, engine.rhoL, engine.rhoS);
+
 engine.Qin = findQin(Tlow, Thigh, engine.Tm, engine.mPCM, engine.csd, engine.Lh, engine.cld);
+
 engine.Eff = findEfficiency(engine.Est, engine.Qin);  
+
 engine.f = engine.f*100;
+
 engine
 %% Functions
 % 1. Finding Specific Volume of PCM [vP]
@@ -68,14 +79,14 @@ function voP = specificVolPCM(T)
         (1.8186e-3* (T + 273.15)^2) -(1.9555e-6* (T + 273.15)^3) ) )^-1;
 end
 
-% c. Find the volume of PCM (liquid state) [v1P]
+% b. Find the volume of PCM (liquid state) [v1P]
 function [v1P, VPCM] = volPCM(rhoS, mPCM)
     v1P = 1/rhoS; % Specific volume of PCM in liquid state
     VPCM = mPCM*v1P;
 end
-% d. Find specific volume of PCM at states 2 -> 3 (at pressure P) [vP]
+% c. Find specific volume of PCM at states 2 -> 3 (at pressure P) [vP]
 
-% 3. Find inner volume of cylinder, Volume fraction of air and PCM 
+% 2. Find inner volume of cylinder, Volume fraction of air and PCM 
 function [V,V1A, f,V1H, mH] = findVolume(a1, L1, ar, VPCM, v1H)
     V = pi*L1*( (a1 / 2)^2 ); % Inner volume of Cylinder
     V1A = ar*V; % Volume of residual air
@@ -84,11 +95,11 @@ function [V,V1A, f,V1H, mH] = findVolume(a1, L1, ar, VPCM, v1H)
     mH = ( (V*(1 - f) ) - V1A) / v1H; % mass of HF
 end
 
-% 4. Finding change of Inner Diameter of Tube Under Internal Pressure
+% 3. Finding change of Inner Diameter of Tube Under Internal Pressure
 function P2 = findPressure(Po, a1, v, Ey, b1, V1A, mPCM, mH, voH, L1, CH, BH, v1P)
     % creates a symbolic variable P to plug into equations and solve for it
     syms P; 
-    
+
     % Change in inner diameter of cylinder at pressure P
     delta_a1 = ( ( (P - Po)*a1*(1 - v^2) ) / Ey)*( ( (b1^2 + a1^2) / (b1^2 - a1^2) ) + (v / (1 - v) ) );
     
