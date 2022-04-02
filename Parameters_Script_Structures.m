@@ -71,6 +71,7 @@ engine.Est = findEst(engine.Pa, engine.V1N, engine.mPCM, engine.rhoL, engine.rho
 engine.Qin = findQin(Tlow, Thigh, engine.Tm, engine.mPCM, engine.csd, engine.Lh, engine.cld);
 % 6d. find the theorectical Efficiency % 
 engine.Eff = findEfficiency(engine.Est, engine.Qin);  
+
 % Convert volume fraction to percentage
 engine.f = engine.f*100;
 
@@ -123,6 +124,7 @@ function P2 = findPressure(Po, a1, v, Ey, b1, V1A, mPCM, mH, voH, L1, CH, BH, v1
     P2 = vpasolve(delta_V1 - delta_V2 == 0, P);
     P2 = double(P2); % Convert to a numerical value with precision
 end
+
 % 4. Finding change of Inner Diameter of Tube Under Internal Pressure
 function delta_V1 = findChangeInnerVolume(Po, a1, b1, L1, v, Ey, P2)
     delta_a1 = ( ( (P2 - Po)*a1*(1 - v^2) ) / Ey)*( ( (b1^2 + a1^2) / ...
