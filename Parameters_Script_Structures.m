@@ -51,13 +51,17 @@ engine.ar = 6.573 / 100; % Volume fraction of residual air
 engine.voP = specificVolPCM(T);
 % 1c. Find the volume of PCM (liquid state) [v1P]
 [engine.v1P, engine.VPCM] = volPCM(engine.rhoS, engine.mPCM);
+
 % 3. Find inner volume of cylinder, Volume fraction of air and PCM 
 [engine.V,engine.V1A, engine.f,engine.V1H, engine.mH] = findVolume(engine.a1, engine.L1, engine.ar, engine.VPCM, engine.v1H);
+
 % 5. Finding Max Pressure [P2]
 engine.P2 = findPressure(Po, engine.a1, engine.v, engine.Ey, engine.b1, engine.V1A, ...
     engine.mPCM, engine.mH, engine.voH, engine.L1, engine.CH, engine.BH, engine.v1P);
+
 % 4. Finding change of Inner Diameter of Tube Under Internal Pressure
 engine.delta_V1 = findChangeInnerVolume(Po, engine.a1, engine.b1, engine.L1, engine.v, engine.Ey, engine.P2);
+
 % 6a. Find Pre-charged pressure in acculimlator
 engine.Pa = findPa(Po, engine.P2, engine.V1N, engine.delta_V1, engine.V1A, engine.V, engine.f, engine.v1P, ...
     engine.voP, engine.CP, engine.BP, engine.CH, engine.BH, engine.v1H);
