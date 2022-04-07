@@ -79,9 +79,8 @@ engine % prints out the engine structure
 engine.Eff2 = findEfficiency2(T, Tlow, Thigh, Po, engine.L1, engine.a1, engine.b1, engine.csd, ...
                         engine.cld, engine.Lh, engine.Tm, engine.v, engine.Ey, engine.mPCM, engine.rhoS, engine.rhoL, ...
                         engine.voH, engine.ar, engine.v1H, engine.V1N, engine.CH, engine.BH, engine.CP, engine.BP);
-
 %% Test 1: Changing everything at once
-% Note: This is trying to see if we can ru
+% Note: This is trying to see if we can run all analysis in 1 loop
 % the answers are in a matrix
 
 % can remove or add more parameters into the
@@ -122,7 +121,7 @@ for j = 1:length(lowerbound) % For each parameter we want to change
         p(j) = z + l; % Changed value for a variable
         % Find Efficiency value
         answer = findEfficiency2(T, Tlow, Thigh, Po, p(1), engine.a1, p(2), engine.csd, ...
-                        engine.cld, p(3), p(4), engine.v, engine.Ey, engine.mPCM, engine.rhoS, engine.rhoL, ...
+                        engine.cld, p(3), p(4), engine.v, engine.Ey, p(7), p(5), p(6), ...
                         engine.voH, engine.ar, engine.v1H, engine.V1N, engine.CH, engine.BH, engine.CP, engine.BP);
         % some answers were complex numbers, this filters them out by
         % setting that value to 0
@@ -143,11 +142,15 @@ end
 inputs % prints inputs
 answers % prints answers
 %% Test 2: sensativity analysis of each parameter using Structures
+% Notes: trying to see if we can create a new structure 'sensanalysis'
+% to add in all our of parameter test
+
+% Cannot use the 'engine' structure because its been breaking the code
+
 % New structure: sensanalysis
 % fields: name, parameter, efficiency
 
-% Notes: 1. Still work in progress, trying to see if using a new structure
-% (sensanalysis) will be better than creating a new 'engine' structure
+
 
 % changing the length of engine
 L = 1:0.1:3; % Length of the cylinder [m]
@@ -173,9 +176,6 @@ sensanalysis(2).Efficiency = Eff;
 sensanalysis(2).name = 'Changing b1';
 
 %% Test 3: Combine Tests 1 and 2
-% Note: Don't know how to inplement different structure, so
-% the answers are in a matrix
-
 % can remove or add more parameters into the
 % lowerbound/upperbound/data lists
 
@@ -195,7 +195,7 @@ data = [engine.L1, engine.b1, engine.Lh, engine.Tm, engine.rhoS, ...
 % fieldnames
 fields = ["L1" "b1" "Lh" "Tm" "rhoS" "rhoL" "mPCM"];
 % The number of data points between the lower and upper bounds
-delta = 20; % change in L1, thickness, Tm
+delta = 20; % number of steps between upper and lower bounds
 
 % For loop that goes thru every variable we want to change
 for j = 1:length(lowerbound) % For each parameter we want to change
@@ -210,12 +210,14 @@ for j = 1:length(lowerbound) % For each parameter we want to change
        % Find what the value is for the changing variable
         z = ((u - l) / delta) * i;
         p(j) = z + l; % Changed value for a variable
+        
         % Find Efficiency value
+        % each changed value is represented by p(#) instead of engine.parameter
         answer = findEfficiency2(T, Tlow, Thigh, Po, p(1), engine.a1, p(2), engine.csd, ...
-                        engine.cld, p(3), p(4), engine.v, engine.Ey, engine.mPCM, engine.rhoS, engine.rhoL, ...
+                        engine.cld, p(3), p(4), engine.v, engine.Ey, p(7), p(5), p(6), ...
                         engine.voH, engine.ar, engine.v1H, engine.V1N, engine.CH, engine.BH, engine.CP, engine.BP);
-        % some answers were complex numbers, this filters them out by
-        % setting that value to 0
+        some answers were complex numbers, this filters them out by
+        setting that value to 0
         out = isreal(answer);
         if out == false
             answer = 0;
@@ -323,7 +325,7 @@ function Eff = findEfficiency2(T, Tlow, Thigh, Po, L1, a1, b1,csd, cld, Lh, Tm, 
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% %Pressure to Stress Equations
+%Pressure to Stress Equations
 function [sigma_tan, sigma_rad, sigma_long] = PtoStress(P2, a1, b1)
     % sigma_tan is the tangential stress
     sigma_tan = P2*(((b1/2)^2 + (a1/2)^2) / ((b1/2)^2 - (a1/2)^2));
