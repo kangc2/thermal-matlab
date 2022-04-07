@@ -239,11 +239,13 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % %Pressure to Stress Equations
-% % sigma_tan is the tangential stress
-% sigma_tan = P2*(((b1/2)^2 + (a1/2)^2) / ((b1/2)^2 - (a1/2)^2))
-% 
-% %sigma_rad is the radial stress
-% sigma_rad = -P2
-% 
-% %sigma_long is the longitudinal stress on the ends
-% sigma_long = (P2*(a1/2)^2)/((b1/2)^2 - (a1/2)^2)
+function [sigma_tan, sigma_rad, sigma_long] = PtoStress(P2, a1, b1)
+    % sigma_tan is the tangential stress
+    sigma_tan = P2*(((b1/2)^2 + (a1/2)^2) / ((b1/2)^2 - (a1/2)^2));
+    
+    %sigma_rad is the radial stress
+    sigma_rad = -P2;
+    
+    %sigma_long is the longitudinal stress on the ends
+    sigma_long = (P2*(a1/2)^2)/((b1/2)^2 - (a1/2)^2);
+end
