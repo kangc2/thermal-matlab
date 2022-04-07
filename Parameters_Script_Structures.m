@@ -44,30 +44,30 @@ engine.CH = 0.3150*engine.voH;
 engine.V1N = 2e-03; % Initial Volume of N2 gas
 engine.ar = 6.573 / 100; % Volume fraction of residual air
 %% Calculations
-% % 1 Find specific volume of PCM under ambient pressure Po, volume and mass of PCM [voP]
-% [engine.voP, engine.v1P, engine.VPCM] = specificVolPCM(T, engine.rhoS, engine.mPCM);
-% % 3. Find inner volume of cylinder, Volume fraction of air and PCM 
-% [engine.V,engine.V1A, engine.f,engine.V1H, engine.mH] = findVolume(engine.a1, engine.L1, engine.ar, engine.VPCM, engine.v1H);
-% 
-% % 5. Finding Max Pressure [P2]
-% engine.P2 = findPressure(Po, engine.a1, engine.v, engine.Ey, engine.b1, engine.V1A, ...
-%     engine.mPCM, engine.mH, engine.voH, engine.L1, engine.CH, engine.BH, engine.v1P);
-% 
-% % 4. Finding change of Inner Diameter of Tube Under Internal Pressure
-% engine.delta_V1 = findChangeInnerVolume(Po, engine.a1, engine.b1, engine.L1, engine.v, engine.Ey, engine.P2);
-% 
-% % 6a. Find Pre-charged pressure in acculimlator
-% engine.Pa = findPa(Po, engine.P2, engine.V1N, engine.delta_V1, engine.V1A, engine.V, engine.f, engine.v1P, ...
-%     engine.voP, engine.CP, engine.BP, engine.CH, engine.BH, engine.v1H);
-% % 6b. find the total energy stored
-% engine.Est = findEst(engine.Pa, engine.V1N, engine.mPCM, engine.rhoL, engine.rhoS);
-% % 6c. Find total thermal energy absorbed by PCM in 1 melting/freezing cycle
-% engine.Qin = findQin(Tlow, Thigh, engine.Tm, engine.mPCM, engine.csd, engine.Lh, engine.cld);
-% % 6d. find the theorectical Efficiency % 
-% engine.Eff = findEfficiency(engine.Est, engine.Qin);  
+% 1 Find specific volume of PCM under ambient pressure Po, volume and mass of PCM [voP]
+[engine.voP, engine.v1P, engine.VPCM] = specificVolPCM(T, engine.rhoS, engine.mPCM);
+% 3. Find inner volume of cylinder, Volume fraction of air and PCM 
+[engine.V,engine.V1A, engine.f,engine.V1H, engine.mH] = findVolume(engine.a1, engine.L1, engine.ar, engine.VPCM, engine.v1H);
 
-% % Convert volume fraction to percentage
-% engine.f = engine.f*100;
+% 5. Finding Max Pressure [P2]
+engine.P2 = findPressure(Po, engine.a1, engine.v, engine.Ey, engine.b1, engine.V1A, ...
+    engine.mPCM, engine.mH, engine.voH, engine.L1, engine.CH, engine.BH, engine.v1P);
+
+% 4. Finding change of Inner Diameter of Tube Under Internal Pressure
+engine.delta_V1 = findChangeInnerVolume(Po, engine.a1, engine.b1, engine.L1, engine.v, engine.Ey, engine.P2);
+
+% 6a. Find Pre-charged pressure in acculimlator
+engine.Pa = findPa(Po, engine.P2, engine.V1N, engine.delta_V1, engine.V1A, engine.V, engine.f, engine.v1P, ...
+    engine.voP, engine.CP, engine.BP, engine.CH, engine.BH, engine.v1H);
+% 6b. find the total energy stored
+engine.Est = findEst(engine.Pa, engine.V1N, engine.mPCM, engine.rhoL, engine.rhoS);
+% 6c. Find total thermal energy absorbed by PCM in 1 melting/freezing cycle
+engine.Qin = findQin(Tlow, Thigh, engine.Tm, engine.mPCM, engine.csd, engine.Lh, engine.cld);
+% 6d. find the theorectical Efficiency % 
+engine.Eff = findEfficiency(engine.Est, engine.Qin);  
+
+% Convert volume fraction to percentage
+engine.f = engine.f*100;
 
 %% Find Efficiency
 engine.Eff2 = findEfficiency2(T,Tlow, Thigh, Po, engine.rhoS, engine.mPCM, engine.a1, ...
@@ -75,7 +75,30 @@ engine.Eff2 = findEfficiency2(T,Tlow, Thigh, Po, engine.rhoS, engine.mPCM, engin
                                 engine.Ey, engine.b1, engine.voH, engine.CH, engine.BH, engine.V1N, ...
                                 engine.CP, engine.BP, engine.rhoL, engine.Tm, engine.csd, engine.Lh, engine.cld);
 
-engine;
+
+%% Testing: Changing everything at once
+lowerbound = [1, 7.7e-02, 18.2]; % L1, thickness, Tm
+upperbound = [3, 0.1, 37]; % L1, thickness, Tm
+delta = 20; % change in L1, thickness, Tm
+answers = [];
+for j = 1:length(lowerbound)
+    l = lowerbound(j);
+    u = upperbound(j);
+    p = lowerbound;
+    j
+    line = [];
+   for i= 1:delta
+        z = ((u - l) / delta) * i;
+        p(j) = z + l;
+        answer = findEfficiency2(T, Tlow, Thigh, Po, engine.rhoS, engine.mPCM, p(2), ...
+                                p(1), engine.ar, engine.v1H, engine.v, ...
+                                engine.Ey, engine.b1, engine.voH, engine.CH, engine.BH, engine.V1N, ...
+                                engine.CP, engine.BP, engine.rhoL, p(3), engine.csd, engine.Lh, engine.cld);
+        line = [line, answer];
+    end
+    answers = [answers; line];
+end
+answers
 %% Testing: changing the length of engine
 L = 1:0.1:3; % Length of the cylinder [m]
 for i = 1:length(L)
@@ -88,12 +111,6 @@ end
 engine(2).Eff2 = Eff;
 engine(2).L1 = L;
 engine(2).name = 'Changing Length';
-
-%% Testing: Changing everything at once
-upperbound = [0, 0, 0];
-lowerbound = [10, 10, 100];
-delta = [.1, 10, 20];
-
 %% Functions
 % 1. Finding Specific Volume of PCM [vP]
 function [voP, v1P, VPCM] = specificVolPCM(T,rhoS, mPCM)
@@ -183,3 +200,14 @@ function Eff = findEfficiency2(T, Tlow, Thigh, Po, rhoS, mPCM, a1, L1, ar, v1H, 
     Qin = findQin(Tlow, Thigh, Tm, mPCM, csd, Lh, cld);
     Eff = Est / (Qin*1e3) * 100;
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %Pressure to Stress Equations
+% % sigma_tan is the tangential stress
+% sigma_tan = P2*(((b1/2)^2 + (a1/2)^2) / ((b1/2)^2 - (a1/2)^2))
+% 
+% %sigma_rad is the radial stress
+% sigma_rad = -P2
+% 
+% %sigma_long is the longitudinal stress on the ends
+% sigma_long = (P2*(a1/2)^2)/((b1/2)^2 - (a1/2)^2)
