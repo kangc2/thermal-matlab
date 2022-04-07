@@ -85,22 +85,19 @@ engine.Eff2 = findEfficiency2(T,Tlow, Thigh, Po, engine.rhoS, engine.mPCM, engin
 % Note: Don't know how to inplement different structure, so
 % the answers are in a matrix
 
-% can remove or add more parameters into the
+% can remove or add more changing parameters into the
 % lowerbound/upperbound/data lists
 
 % The lowerbounds of each parameter we want to check
-lowerbound = [1, 0.08, 18]; % L1, outer diameter thickness b1, Tm
-
+lowerbound = [1, 0.08, 18]; % L1, out diameter thickness b1, Tm
 % The upperbounds of each parameter we want to check
-upperbound = [3, 0.1, 37]; % L1, outer diameter thickness b1, Tm
+upperbound = [3, 0.1, 37]; % L1, out diameter thickness b1, Tm
 % The intial inputs of the engine so only 1 value is changing at a time
 data = [engine.L1, engine.b1, engine.Tm];
 % The number of data points between the lower and upper bounds
 delta = 20; % change in L1, thickness, Tm
-
 % Matrix of all of our answers, each row is for each changed variable
 answers = [];
-
 % For loop that goes thru every variable we want to change
 for j = 1:length(lowerbound) % For each parameter we want to change
     l = lowerbound(j); % lower bound values
