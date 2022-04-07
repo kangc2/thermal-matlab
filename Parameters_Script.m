@@ -46,6 +46,12 @@ ar = 6.573 / 100; % Volume fraction of residual air
 %Starting with for loop for Length
 L1 = 1:0.1:3;
 
+Inputlength = length(L1);
+V = zeros(1,Inputlength);
+P2 = zeros(1,Inputlength);
+Eff = zeros(1,Inputlength);
+Pa = zeros(1,Inputlength);
+
 for i = 1:length(L1)
     voP = ( (1.0307e03 - ( 1.2596*(T + 273.15) )  + ...
     (1.8186e-3* (T + 273.15)^2) -(1.9555e-6* (T + 273.15)^3) ) )^-1;
@@ -104,6 +110,13 @@ writematrix([Eff;P2;Pa],'Change_L1.txt','Delimiter','tab')
 %Next is the for loop for specific heat in solid state
 csd = 1:0.1:3; %I need to change this range
 L1 = 1.31;
+
+Inputlength = length(csd);
+V = zeros(1,Inputlength);
+P2 = zeros(1,Inputlength);
+Eff = zeros(1,Inputlength);
+Pa = zeros(1,Inputlength);
+
 for i = 1:length(csd)
     voP = ( (1.0307e03 - ( 1.2596*(T + 273.15) )  + ...
     (1.8186e-3* (T + 273.15)^2) -(1.9555e-6* (T + 273.15)^3) ) )^-1;
@@ -161,6 +174,13 @@ writematrix([Eff;P2;Pa],'Change_csd.txt','Delimiter','tab')
 %Now for loop for specific heat in liquid state
 csd = 1.64;
 cld = 1:0.1:3;
+
+Inputlength = length(cld);
+V = zeros(1,Inputlength);
+P2 = zeros(1,Inputlength);
+Eff = zeros(1,Inputlength);
+Pa = zeros(1,Inputlength);
+
 for i = 1:length(cld)
     voP = ( (1.0307e03 - ( 1.2596*(T + 273.15) )  + ...
     (1.8186e-3* (T + 273.15)^2) -(1.9555e-6* (T + 273.15)^3) ) )^-1;
@@ -217,6 +237,13 @@ writematrix([Eff;P2;Pa],'Change_cld.txt','Delimiter','tab')
 %Now for loop for the latent heat of fusion
 cld = 2.09;
 Lh = 0.49:0.1:0.71;
+
+Inputlength = length(Lh);
+V = zeros(1,Inputlength);
+P2 = zeros(1,Inputlength);
+Eff = zeros(1,Inputlength);
+Pa = zeros(1,Inputlength);
+
 for i = 1:length(Lh)
     voP = ( (1.0307e03 - ( 1.2596*(T + 273.15) )  + ...
     (1.8186e-3* (T + 273.15)^2) -(1.9555e-6* (T + 273.15)^3) ) )^-1;
@@ -273,6 +300,12 @@ writematrix([Eff;P2;Pa],'Change_Lh.txt','Delimiter','tab')
 %Starting with for loop for PCM Melting temperature
 Lh = 236;
 Tm = 18:0.1:37;
+
+Inputlength = length(Tm);
+V = zeros(1,Inputlength);
+P2 = zeros(1,Inputlength);
+Eff = zeros(1,Inputlength);
+Pa = zeros(1,Inputlength);
 
 for i = 1:length(Tm)
     voP = ( (1.0307e03 - ( 1.2596*(T + 273.15) )  + ...
