@@ -10,6 +10,7 @@ Po = 0.101; % Initial Pressure/ambient pressure = atmospheric pressure [MPa]
 %% Define Intial Structure: get all inputs in an 'engine' structure
 % Thermal Engine from our Thermal_Engine code
 % The baseline of our model
+% Note: make sure the field name is right (voH vs. VoH)
 engine.name = 'Original';
 engine.working_fluid = 'Water';
 engine.hull_material = 'TA2M (Titanium alloy)';
@@ -75,11 +76,9 @@ engine % prints out the engine structure
 %% Find Efficiency: get efficiency using all of our inputs
 % adds a new structure field Eff2, same as Eff, but using function that
 % takes in all the inputs at once
-engine.Eff2 = findEfficiency2(T,Tlow, Thigh, Po, engine.rhoS, engine.mPCM, engine.a1, ...
-                                engine.L1, engine.ar, engine.v1H, engine.v, ...
-                                engine.Ey, engine.b1, engine.voH, engine.CH, engine.BH, engine.V1N, ...
-                                engine.CP, engine.BP, engine.rhoL, engine.Tm, engine.csd, engine.Lh, engine.cld);
-
+engine.Eff2 = findEfficiency2(T, Tlow, Thigh, Po, engine.L1, engine.a1, engine.b1, engine.csd, ...
+                        engine.cld, engine.Lh, engine.Tm, engine.v, engine.Ey, engine.mPCM, engine.rhoS, engine.rhoL, ...
+                        engine.voH, engine.ar, engine.v1H, engine.V1N, engine.CH, engine.BH, engine.CP, engine.BP);
 
 %% Testing: Changing everything at once
 % Note: Don't know how to inplement different structure, so
@@ -89,12 +88,13 @@ engine.Eff2 = findEfficiency2(T,Tlow, Thigh, Po, engine.rhoS, engine.mPCM, engin
 % lowerbound/upperbound/data lists
 
 % The lowerbounds of each parameter we want to check
-lowerbound = [1, 0.08, 18]; % L1, outer diameter thickness b1, Tm
+lowerbound = [1, 0.08, 0.49, 18]; 
+% L1, b1, Lh, Tm, 
 
 % The upperbounds of each parameter we want to check
-upperbound = [3, 0.1, 37]; % L1, outer diameter thickness b1, Tm
+upperbound = [3, 0.1, 0.69, 37]; % L1, b1, Lh, Tm
 % The intial inputs of the engine so only 1 value is changing at a time
-data = [engine.L1, engine.b1, engine.Tm];
+data = [engine.L1, engine.b1, engine.Lh, engine.Tm];
 % The number of data points between the lower and upper bounds
 delta = 20; % change in L1, thickness, Tm
 
@@ -107,27 +107,31 @@ for j = 1:length(lowerbound) % For each parameter we want to change
     u = upperbound(j); % upper bound values
     p = data; % values from our engine
     j % check at which variable is passing thru
-    line = []; % this is where each efficiency value is for each variable
-   for i= 1:delta
+    newParam= []; % this is all the changed values for each variable goes
+    newEff = []; % this is where each efficiency value is for each variable
+   
+    for i= 1:delta
        % Find what the value is for the changing variable
         z = ((u - l) / delta) * i;
         p(j) = z + l; % Changed value for a variable
         % Find Efficiency value
-        answer = findEfficiency2(T, Tlow, Thigh, Po, engine.rhoS, engine.mPCM, engine.a1, ...
-                                p(1), engine.ar, engine.v1H, engine.v, ...
-                                engine.Ey, p(2), engine.voH, engine.CH, engine.BH, engine.V1N, ...
-                                engine.CP, engine.BP, engine.rhoL, p(3), engine.csd, engine.Lh, engine.cld);
+        answer = findEfficiency2(T, Tlow, Thigh, Po, p(1), engine.a1, p(2), engine.csd, ...
+                        engine.cld, p(3), p(4), engine.v, engine.Ey, engine.mPCM, engine.rhoS, engine.rhoL, ...
+                        engine.voH, engine.ar, engine.v1H, engine.V1N, engine.CH, engine.BH, engine.CP, engine.BP);
         % some answers were complex numbers, this filters them out by
         % setting that value to 0
         out = isreal(answer);
         if out == false
             answer = 0;
         end
+        % add all changed values into a row
+        newParam = [newParam, p(j)];
         % add all the efficiency values into one row
-        line = [line, answer];
+        newEff = [newEff, answer];
+
    end
    % adds all the rows into one matrix
-    answers = [answers; line];
+    answers = [answers; newParam; newEff];
 end
 answers % prints answers
 %% Testing: changing the length of engine
@@ -221,8 +225,8 @@ end
 
 % This takes in all inputs and finds the Efficiency using all functions
 % above
-function Eff = findEfficiency2(T, Tlow, Thigh, Po, rhoS, mPCM, a1, L1, ar, v1H, v, Ey, b1, voH, CH, BH, ...
-      V1N, CP, BP, rhoL,  Tm, csd, Lh, cld)  
+function Eff = findEfficiency2(T, Tlow, Thigh, Po, L1, a1, b1,csd, cld, Lh, Tm, v, Ey, mPCM, rhoS, rhoL, ...
+    voH, ar, v1H, V1N, CH, BH, CP, BP)  
     [voP, v1P, VPCM] = specificVolPCM(T,rhoS, mPCM);
     [V,V1A, f, V1H, mH] = findVolume(a1, L1, ar, VPCM, v1H);
     P2 = findPressure(Po, a1, v, Ey, b1, V1A, mPCM, mH, voH, L1, CH, BH, v1P);
