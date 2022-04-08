@@ -82,9 +82,7 @@ engine.Eff2 = findEfficiency2(T, Tlow, Thigh, Po, engine.L1, engine.a1, engine.b
 
 
 %% This Loops thru every parameter and returns a structured data for each parameter
-% Combine Tests 1 and 2 (below)
-% can remove or add more parameters into the
-% lowerbound/upperbound/data lists
+% can remove or add more parameters into the lowerbound/upperbound/data lists
 
 % Notes: 1. trying to see if we can create a new structure 'sensanalysis'
 % to add in all our of parameter test
@@ -131,13 +129,6 @@ for j = 1:length(lowerbound) % For each parameter we want to change
         answer = findEfficiency2(T, Tlow, Thigh, Po, p(1), engine.a1, p(2), engine.csd, ...
                         engine.cld, p(3), p(4), engine.v, engine.Ey, p(7), p(5), p(6), ...
                         engine.voH, engine.ar, engine.v1H, engine.V1N, engine.CH, engine.BH, engine.CP, engine.BP);
-
-% %         some answers were complex numbers, this filters them out by
-%         setting that value to 0
-%         out = isreal(answer);
-%         if out == false
-%             answer = 0;
-%         end
 
         % add all changed values into a row
         newParam = [newParam, p(j)];
