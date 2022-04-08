@@ -68,6 +68,8 @@ engine.Est = findEst(engine.Pa, engine.V1N, engine.mPCM, engine.rhoL, engine.rho
 engine.Qin = findQin(Tlow, Thigh, engine.Tm, engine.mPCM, engine.csd, engine.Lh, engine.cld);
 % 6d. find the theorectical Efficiency % 
 engine.Eff = findEfficiency(engine.Est, engine.Qin);  
+%7. Finding Energy Output [W] (kJ)
+W = Eff*Qin*mPCM; 
 
 % Convert volume fraction to percentage
 engine.f = engine.f*100;
