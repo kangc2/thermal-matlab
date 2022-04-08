@@ -14,7 +14,7 @@ Po = 0.101; % Initial Pressure/ambient pressure = atmospheric pressure [MPa]
 engine.name = 'Original';
 engine.working_fluid = 'Water';
 engine.hull_material = 'TA2M (Titanium alloy)';
-
+p;
 % -> Geometry & Material Properties of Cylinder
 engine.L1 = 1.31; % Length of the cylinder [m]
 engine.a1 = 7.7e-02; % Internal diameter of the cylinder [m]
