@@ -14,7 +14,7 @@ Po = 0.101; % Initial Pressure/ambient pressure = atmospheric pressure [MPa]
 engine.name = 'Original';
 engine.working_fluid = 'Water';
 engine.hull_material = 'TA2M (Titanium alloy)';
-p;
+
 % -> Geometry & Material Properties of Cylinder
 engine.L1 = 1.31; % Length of the cylinder [m]
 engine.a1 = 7.7e-02; % Internal diameter of the cylinder [m]
@@ -79,106 +79,21 @@ engine % prints out the engine structure
 engine.Eff2 = findEfficiency2(T, Tlow, Thigh, Po, engine.L1, engine.a1, engine.b1, engine.csd, ...
                         engine.cld, engine.Lh, engine.Tm, engine.v, engine.Ey, engine.mPCM, engine.rhoS, engine.rhoL, ...
                         engine.voH, engine.ar, engine.v1H, engine.V1N, engine.CH, engine.BH, engine.CP, engine.BP);
-%% Test 1: Changing everything at once
-% Note: This is trying to see if we can run all analysis in 1 loop
-% the answers are in a matrix
 
+
+%% Test 3: This Loops thru every parameter and returns a structured data for each parameter
+% Combine Tests 1 and 2 (below)
 % can remove or add more parameters into the
 % lowerbound/upperbound/data lists
 
-% The lowerbounds of each parameter we want to check
-lowerbound = [1, 0.08, 0.49, 18, 600, 600, 3]; 
-% L1, b1, Lh, Tm, rhoS, rhoL, mPCM
-
-% The upperbounds of each parameter we want to check
-upperbound = [3, 0.1, 0.69, 37, 1000, 900, 5];
-% L1, b1, Lh, Tm, rhoS, rhoL, mPCM
-
-% The intial inputs of the engine so only 1 value is changing at a time
-data = [engine.L1, engine.b1, engine.Lh, engine.Tm, engine.rhoS, ... 
-    engine.rhoL, engine.mPCM];
-% L1, b1, Lh, Tm, rhoS, rhoL, mPCM
-
-% The number of data points between the lower and upper bounds
-delta = 20; % change in L1, thickness, Tm
-
-% Matrix of all of our inputs and answers, each row is for each changed variable
-inputs = [];
-answers = [];
-
-% For loop that goes thru every variable we want to change
-for j = 1:length(lowerbound) % For each parameter we want to change
-    l = lowerbound(j); % lower bound values
-    u = upperbound(j); % upper bound values
-    p = data; % values from our engine
-    j % check at which variable is passing thru
-    newParam= []; % this is all the changed values for each variable goes
-    newEff = []; % this is where each efficiency value is for each variable
-   
-    for i= 1:delta
-       % Find what the value is for the changing variable
-        z = ((u - l) / delta) * i;
-        p(j) = z + l; % Changed value for a variable
-        % Find Efficiency value
-        answer = findEfficiency2(T, Tlow, Thigh, Po, p(1), engine.a1, p(2), engine.csd, ...
-                        engine.cld, p(3), p(4), engine.v, engine.Ey, p(7), p(5), p(6), ...
-                        engine.voH, engine.ar, engine.v1H, engine.V1N, engine.CH, engine.BH, engine.CP, engine.BP);
-        % some answers were complex numbers, this filters them out by
-        % setting that value to 0
-        out = isreal(answer);
-        if out == false
-            answer = 0;
-        end
-        % add all changed values into a row
-        newParam = [newParam, p(j)];
-        % add all the efficiency values into one row
-        newEff = [newEff, answer];
-
-   end
-   % adds all the rows into one matrix
-   inputs = [inputs; newParam];
-   answers = [answers; newEff];
-end
-inputs % prints inputs
-answers % prints answers
-%% Test 2: sensativity analysis of each parameter using Structures
-% Notes: trying to see if we can create a new structure 'sensanalysis'
+% Notes: 1. trying to see if we can create a new structure 'sensanalysis'
 % to add in all our of parameter test
 
-% Cannot use the 'engine' structure because its been breaking the code
+% 2. Cannot use the 'engine' structure because its been breaking the code
 
-% New structure: sensanalysis
+% 3. New structure: sensanalysis
 % fields: name, parameter, efficiency
-
-
-
-% changing the length of engine
-L = 1:0.1:3; % Length of the cylinder [m]
-for i = 1:length(L)
-    Eff(i) = findEfficiency2(T, Tlow, Thigh, Po, L(i), engine.a1, engine.b1, engine.csd, ...
-                        engine.cld, engine.Lh, engine.Tm, engine.v, engine.Ey, engine.mPCM, engine.rhoS, engine.rhoL, ...
-                        engine.voH, engine.ar, engine.v1H, engine.V1N, engine.CH, engine.BH, engine.CP, engine.BP);
-end
-
-sensanalysis.Param = L;
-sensanalysis.Efficiency = Eff;
-sensanalysis.name = 'Changing Length';
-% changing b1 of engine
-b1 = 0.08:0.01:0.1; % Length of the cylinder [m]
-for i = 1:length(b1)
-    Eff(i) = findEfficiency2(T, Tlow, Thigh, Po, engine.L1, engine.a1, b1(i), engine.csd, ...
-                        engine.cld, engine.Lh, engine.Tm, engine.v, engine.Ey, engine.mPCM, engine.rhoS, engine.rhoL, ...
-                        engine.voH, engine.ar, engine.v1H, engine.V1N, engine.CH, engine.BH, engine.CP, engine.BP);
-
-end
-sensanalysis(2).Param = b1;
-sensanalysis(2).Efficiency = Eff;
-sensanalysis(2).name = 'Changing b1';
-
-%% Test 3: Combine Tests 1 and 2
-% can remove or add more parameters into the
-% lowerbound/upperbound/data lists
-
+% 
 % The lowerbounds of each parameter we want to check
 lowerbound = [1, 0.08, 0.49, 18, 600, 600, 3]; 
 % L1, b1, Lh, Tm, rhoS, rhoL, mPCM
@@ -236,6 +151,102 @@ for j = 1:length(lowerbound) % For each parameter we want to change
    sensanalysis2(j).efficiencies = newEff;
 
 end
+
+%% Test 1: Changing everything at once
+% % Note: This is trying to see if we can run all analysis in 1 loop
+% % the answers are in a matrix
+% 
+% % can remove or add more parameters into the
+% % lowerbound/upperbound/data lists
+% 
+% % The lowerbounds of each parameter we want to check
+% lowerbound = [1, 0.08, 0.49, 18, 600, 600, 3]; 
+% % L1, b1, Lh, Tm, rhoS, rhoL, mPCM
+% 
+% % The upperbounds of each parameter we want to check
+% upperbound = [3, 0.1, 0.69, 37, 1000, 900, 5];
+% % L1, b1, Lh, Tm, rhoS, rhoL, mPCM
+% 
+% % The intial inputs of the engine so only 1 value is changing at a time
+% data = [engine.L1, engine.b1, engine.Lh, engine.Tm, engine.rhoS, ... 
+%     engine.rhoL, engine.mPCM];
+% % L1, b1, Lh, Tm, rhoS, rhoL, mPCM
+% 
+% % The number of data points between the lower and upper bounds
+% delta = 20; % change in L1, thickness, Tm
+% 
+% % Matrix of all of our inputs and answers, each row is for each changed variable
+% inputs = [];
+% answers = [];
+% 
+% % For loop that goes thru every variable we want to change
+% for j = 1:length(lowerbound) % For each parameter we want to change
+%     l = lowerbound(j); % lower bound values
+%     u = upperbound(j); % upper bound values
+%     p = data; % values from our engine
+%     j % check at which variable is passing thru
+%     newParam= []; % this is all the changed values for each variable goes
+%     newEff = []; % this is where each efficiency value is for each variable
+%    
+%     for i= 1:delta
+%        % Find what the value is for the changing variable
+%         z = ((u - l) / delta) * i;
+%         p(j) = z + l; % Changed value for a variable
+%         % Find Efficiency value
+%         answer = findEfficiency2(T, Tlow, Thigh, Po, p(1), engine.a1, p(2), engine.csd, ...
+%                         engine.cld, p(3), p(4), engine.v, engine.Ey, p(7), p(5), p(6), ...
+%                         engine.voH, engine.ar, engine.v1H, engine.V1N, engine.CH, engine.BH, engine.CP, engine.BP);
+%         % some answers were complex numbers, this filters them out by
+%         % setting that value to 0
+%         out = isreal(answer);
+%         if out == false
+%             answer = 0;
+%         end
+%         % add all changed values into a row
+%         newParam = [newParam, p(j)];
+%         % add all the efficiency values into one row
+%         newEff = [newEff, answer];
+% 
+%    end
+%    % adds all the rows into one matrix
+%    inputs = [inputs; newParam];
+%    answers = [answers; newEff];
+% end
+% inputs % prints inputs
+% answers % prints answers
+%% Test 2: sensativity analysis of each parameter using Structures
+% % Notes: trying to see if we can create a new structure 'sensanalysis'
+% % to add in all our of parameter test
+% 
+% % Cannot use the 'engine' structure because its been breaking the code
+% 
+% % New structure: sensanalysis
+% % fields: name, parameter, efficiency
+% 
+% 
+% 
+% % changing the length of engine
+% L = 1:0.1:3; % Length of the cylinder [m]
+% for i = 1:length(L)
+%     Eff(i) = findEfficiency2(T, Tlow, Thigh, Po, L(i), engine.a1, engine.b1, engine.csd, ...
+%                         engine.cld, engine.Lh, engine.Tm, engine.v, engine.Ey, engine.mPCM, engine.rhoS, engine.rhoL, ...
+%                         engine.voH, engine.ar, engine.v1H, engine.V1N, engine.CH, engine.BH, engine.CP, engine.BP);
+% end
+% 
+% sensanalysis.Param = L;
+% sensanalysis.Efficiency = Eff;
+% sensanalysis.name = 'Changing Length';
+% % changing b1 of engine
+% b1 = 0.08:0.01:0.1; % Length of the cylinder [m]
+% for i = 1:length(b1)
+%     Eff(i) = findEfficiency2(T, Tlow, Thigh, Po, engine.L1, engine.a1, b1(i), engine.csd, ...
+%                         engine.cld, engine.Lh, engine.Tm, engine.v, engine.Ey, engine.mPCM, engine.rhoS, engine.rhoL, ...
+%                         engine.voH, engine.ar, engine.v1H, engine.V1N, engine.CH, engine.BH, engine.CP, engine.BP);
+% 
+% end
+% sensanalysis(2).Param = b1;
+% sensanalysis(2).Efficiency = Eff;
+% sensanalysis(2).name = 'Changing b1';
 %% Functions
 % 1. Finding Specific Volume of PCM [vP]
 function [voP, v1P, VPCM] = specificVolPCM(T,rhoS, mPCM)
