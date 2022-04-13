@@ -176,7 +176,7 @@ end
 % 5. Finding Max Pressure [P2]
 function P2 = findPressure(Po, a1, v, Ey, b1, V1A, mPCM, mH, voH, L1, CH, BH, v1P)
     % creates a symbolic variable P to plug into equations and solve for it
-    syms P; 
+%     syms P; 
 
     % Change in inner diameter of cylinder at pressure P
     delta_a1 = ( ( (P - Po)*a1*(1 - v^2) ) / Ey)*( ( (b1^2 + a1^2) / (b1^2 - a1^2) ) + (v / (1 - v) ) );
@@ -185,7 +185,7 @@ function P2 = findPressure(Po, a1, v, Ey, b1, V1A, mPCM, mH, voH, L1, CH, BH, v1
     % based on geometry of cylinder
     delta_V1 = (pi / 4)*(L1*( ( (2*a1) + delta_a1)*delta_a1) );
    
-    vP = 1.3e-03 - (2.66e-04*log10( 1 + ( (P-Po) / 102.12) ) ); % specific volume of PCM
+    vP = 1.3e-03 - (2.66e-04*log10( 1 + ( (P - Po) / 102.12) ) ); % specific volume of PCM
     vH = voH - (CH*log10(1 + ( (P - Po) / BH) ) ); % specific volume of HF
     VA = (V1A*Po) / P; % Volume of residual air
    
@@ -193,9 +193,11 @@ function P2 = findPressure(Po, a1, v, Ey, b1, V1A, mPCM, mH, voH, L1, CH, BH, v1
     % based on HF and PCM mass and volume properties
     delta_V2 = ( mPCM*(vP - v1P) ) + ( mH*(vH - voH) ) + (VA - V1A); 
     
+    delta_V = delta_V2 - delta_V1;
     % P2 is the 1st instance where delta_V1 - delta_V2 == 0
-    P2 = vpasolve(delta_V1 - delta_V2 == 0, P);
-    P2 = double(P2); % Convert to a numerical value with precision
+%     P2 = vpasolve(delta_V1 - delta_V2 == 0, P);
+%     P2 = double(P2); % Convert to a numerical value with precision
+    P2 = fsolve(@(P)delta_V, 5)
 end
 
 % 4. Finding change of Inner Diameter of Tube Under Internal Pressure
