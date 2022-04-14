@@ -70,7 +70,7 @@ engine.Qin = findQin(Tlow, Thigh, engine.Tm, engine.mPCM, engine.csd, engine.Lh,
 engine.Eff = findEfficiency(engine.Est, engine.Qin);  
 
 % Convert volume fraction to percentage
-engine.f = engine.f*100;
+engine.f = engine.f;
 
 engine % prints out the engine structure
 %% Find Efficiency: get efficiency using all of our inputs
@@ -81,6 +81,25 @@ engine.Eff2 = findEfficiency2(T, Tlow, Thigh, Po, engine.L1, engine.a1, engine.b
                         engine.voH, engine.ar, engine.v1H, engine.V1N, engine.CH, engine.BH, engine.CP, engine.BP);
 
 
+%% Solves for P using fsolve (pretty messy right now)
+% Funtion F is the function delta_V1 - delta_V2 = 0 all in terms of P
+    F = @(P)((pi / 4)*(engine.L1*( ( (2*engine.a1) + ...
+            ( ( (P - Po)*engine.a1*(1 - engine.v^2) ) / engine.Ey)*( ( (engine.b1^2 + engine.a1^2) / (engine.b1^2 - engine.a1^2) ) +...
+        (engine.v / (1 - engine.v) ) ))*...
+            ( ( (P - Po)*engine.a1*(1 - engine.v^2) ) / engine.Ey)*( ( (engine.b1^2 + engine.a1^2) / (engine.b1^2 - engine.a1^2) ) + ...
+        (engine.v / (1 - engine.v) ) )) ))... % delta_V1
+    - ...
+    (( engine.mPCM*((1.3e-03 - (2.66e-04*log10( 1 + ( (P - Po) / 102.12) ) )) - engine.v1P) ) + ...
+    ( engine.mH*((engine.voH - (engine.CH*log10(1 + ( (P - Po) / engine.BH) ) )) - engine.voH) ) + (((engine.V1A*Po) / P) - engine.V1A)); %delta_V2
+
+% Options: sets tolerance of function close to 0 (1-e14) and displays the
+% iteration, this could help with the optimization
+% options = optimoptions('fsolve','Display','iter','TolFun',1e-14);
+options = optimoptions('fsolve','Display','iter','TolFun',1e-14);
+
+%solves for P, same answer as the engine.P2 with the current finding
+%Pressure function
+P = fsolve(F,5,options)
 %% This Loops thru every parameter and returns a structured data for each parameter
 % can remove or add more parameters into the lowerbound/upperbound/data lists
 
@@ -129,7 +148,7 @@ for j = 1:length(lowerbound) % For each parameter we want to change
         answer = findEfficiency2(T, Tlow, Thigh, Po, p(1), engine.a1, p(2), engine.csd, ...
                         engine.cld, p(3), p(4), engine.v, engine.Ey, p(7), p(5), p(6), ...
                         engine.voH, engine.ar, engine.v1H, engine.V1N, engine.CH, engine.BH, engine.CP, engine.BP);
-
+        
         % add all changed values into a row
         newParam = [newParam, p(j)];
         % add all the efficiency values into one row

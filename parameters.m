@@ -96,7 +96,7 @@ options = optimoptions('fsolve','Display','iter','TolFun',1e-14);
 %Pressure function
 P = fsolve(F,5,options)
 
-%% Loops thru every parameter and returns a structured data for each parameter
+%% 
 % can remove or add more parameters into the lowerbound/upperbound/data lists
 % Notes: 1. trying to see if we can create a new structure 'sensanalysis'
 % to add in all our of parameter test
@@ -118,7 +118,40 @@ input_range.mPCM = [3, 5, engine.mPCM];
 fields = fieldnames(input_range);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 delta = 20; % number of steps between upper and lower bounds
+% For loop that goes thru every variable we want to change
+for j = 1:length(fields) % For each parameter we want to change
+    l = lowerbound(j); % lower bound values
+    u = upperbound(j); % upper bound values
+    p = data; % values from our engine
+    j % check at which variable is passing thru
+    newParam= []; % this is all the changed values for each variable goes
+    newEff = []; % this is where each efficiency value is for each variable
+   
+    for i= 1:delta
+       % Find what the value is for the changing variable
+        z = ((u - l) / delta) * i;
+        p(j) = z + l; % Changed value for a variable
+        
+        % Find Efficiency value
+        % each changed value is represented by p(#) instead of engine.parameter
+        answer = findEfficiency2(T, Tlow, Thigh, Po, p(1), engine.a1, p(2), engine.csd, ...
+                        engine.cld, p(3), p(4), engine.v, engine.Ey, p(7), p(5), p(6), ...
+                        engine.voH, engine.ar, engine.v1H, engine.V1N, engine.CH, engine.BH, engine.CP, engine.BP);
 
+        % add all changed values into a row
+        newParam = [newParam, p(j)];
+        % add all the efficiency values into one row
+        newEff = [newEff, answer];
+
+   end
+   % adds into a new 'sensanylsis' structure
+   sensanalysis(j).name = fields(j);
+   sensanalysis(j).param = newParam;
+   sensanalysis(j).efficiencies = newEff;
+
+end
+
+%% Loops thru every parameter and returns a structured data for each parameter
 % The lowerbounds of each parameter we want to check
 lowerbound = [.3, 0.08, 0.49, 18, 600, 600, 3]; 
 % L1, b1, Lh, Tm, rhoS, rhoL, mPCM
