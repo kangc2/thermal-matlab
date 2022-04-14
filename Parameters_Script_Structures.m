@@ -68,6 +68,7 @@ engine.Qin = findQin(Tlow, Thigh, engine.Tm, engine.mPCM, engine.csd, engine.Lh,
 % 6d. find the theorectical Efficiency % 
 engine.Eff = findEfficiency(engine.Est, engine.Qin);  
 
+W = Eff*Qin*mPCM;
 %% Find Efficiency: get efficiency using all of our inputs
 % adds a new structure field Eff2, same as Eff, but using function that
 % takes in all the inputs at once
