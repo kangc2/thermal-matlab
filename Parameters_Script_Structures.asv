@@ -67,8 +67,6 @@ engine.Est = findEst(engine.Pa, engine.V1N, engine.mPCM, engine.rhoL, engine.rho
 engine.Qin = findQin(Tlow, Thigh, engine.Tm, engine.mPCM, engine.csd, engine.Lh, engine.cld);
 % 6d. find the theorectical Efficiency % 
 engine.Eff = findEfficiency(engine.Est, engine.Qin);  
-%7. Finding Energy Output [W] (kJ)
-W = Eff*Qin*mPCM; 
 
 %% Find Efficiency: get efficiency using all of our inputs
 % adds a new structure field Eff2, same as Eff, but using function that
@@ -82,13 +80,14 @@ engine % prints out the engine structure
 %create a new structure 'parameter' to add in all our of tests into structures
 
 % Parameters to change: a new structure called input_range
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % includes all the parameters we want to test via structures
 % Field name, lowerbound, upperbound, delta, original value
 input_range.L1 = [1, 3, engine.L1];
 input_range.b1 = [0.08, 0.1, engine.b1];
 input_range.Lh = [0.49, 0.69, engine.Lh];
 input_range.Tm = [18, 37, engine.Tm];
-input_range.rhoS = [700, 1000, engine.rhoS];
+input_range.rhoS = [600, 1000, engine.rhoS];
 input_range.rhoL = [600, 900, engine.rhoL];
 input_range.mPCM = [3, 5, engine.mPCM];
 fields = string(fieldnames(input_range));
@@ -117,6 +116,7 @@ for j = 1:length(fields) % For each parameter we want to change
         % Find Efficiency value
         % each changed value is represented by p(#) instead of engine.parameter
         answer = findEfficiency2(T, Tlow, Thigh, Po, original);
+
         % add all changed values into a row
         newParam = [newParam, original.(fields(j))];
         % add all the efficiency values into one row
@@ -234,8 +234,8 @@ end
 function Eff = findEfficiency2(T, Tlow, Thigh, Po, engine)  
     [voP, v1P, VPCM] = specificVolPCM(T, engine.rhoS, engine.mPCM);
     [V,V1A, f, V1H, mH] = findVolume(engine.a1, engine.L1, engine.ar, VPCM, engine.v1H);
-    P2 = findPressure(Po, engine.a1, engine.v, engine.Ey, engine.b1, V1A, engine.mPCM, mH, engine.voH, ...
-        engine.L1, engine.CH, engine.BH, v1P);
+    P2 = findPressure(Po, engine.a1, engine.v, engine.Ey, engine.b1, V1A, engine.mPCM, engine.mH, engine.voH, ...
+        engine.L1, engine.CH, engine.BH, engine.v1P);
     delta_V1 = findChangeInnerVolume(Po, engine.a1, engine.b1, engine.L1, engine.v, engine.Ey, P2);
     Pa = findPa(Po, P2, engine.V1N, delta_V1, V1A, V, f, v1P, voP, engine.CP, engine.BP, engine.CH, engine.BH, engine.v1H);
     Est = findEst(Pa, engine.V1N, engine.mPCM, engine.rhoL, engine.rhoS);
@@ -254,3 +254,16 @@ function [sigma_tan, sigma_rad, sigma_long] = PtoStress(P2, a1, b1)
     %sigma_long is the longitudinal stress on the ends
     sigma_long = (P2*(a1/2)^2)/((b1/2)^2 - (a1/2)^2);
 end
+
+%OLD VERISON
+% function Eff = findEfficiency2(T, Tlow, Thigh, Po, L1, a1, b1, csd, cld, Lh, Tm, v, Ey, mPCM, rhoS, rhoL, ...
+%     voH, ar, v1H, V1N, CH, BH, CP, BP)  
+%     [voP, v1P, VPCM] = specificVolPCM(T,rhoS, mPCM);
+%     [V,V1A, f, V1H, mH] = findVolume(a1, L1, ar, VPCM, v1H);
+%     P2 = findPressure(Po, a1, v, Ey, b1, V1A, mPCM, mH, voH, L1, CH, BH, v1P);
+%     delta_V1 = findChangeInnerVolume(Po, a1, b1, L1, v, Ey, P2);
+%     Pa = findPa(Po, P2, V1N, delta_V1, V1A, V, f, v1P, voP, CP, BP, CH, BH, v1H);
+%     Est = findEst(Pa, V1N, mPCM, rhoL, rhoS);
+%     Qin = findQin(Tlow, Thigh, Tm, mPCM, csd, Lh, cld);
+%     Eff = Est / (Qin*1e3) * 100;
+% end
