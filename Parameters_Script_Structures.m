@@ -130,25 +130,7 @@ for j = 1:length(fields) % For each parameter we want to change
 
    original.(fields(j)) = input(3); % reverts the value back to its original value
 end
-%% Solves for P using fsolve (pretty messy right now)
-% Funtion F is the function: F = delta_V1 - delta_V2 all in terms of P
-    F = @(P)((pi / 4)*(engine.L1*( ( (2*engine.a1) + ...
-            ( ( (P - Po)*engine.a1*(1 - engine.v^2) ) / engine.Ey)* ...
-            ( ( (engine.b1^2 + engine.a1^2) / (engine.b1^2 - engine.a1^2) ) + (engine.v / (1 - engine.v) ) ))*...
-            ( ( (P - Po)*engine.a1*(1 - engine.v^2) ) / engine.Ey)*+ ...
-            ( ( (engine.b1^2 + engine.a1^2) / (engine.b1^2 - engine.a1^2) ) + (engine.v / (1 - engine.v) ) )) ))... % delta_V1
-    - ...
-    (( engine.mPCM*((1.3e-03 - (2.66e-04*log10( 1 + ( (P - Po) / 102.12) ) )) - engine.v1P) ) + ...
-    ( engine.mH*((engine.voH - (engine.CH*log10(1 + ( (P - Po) / engine.BH) ) )) - engine.voH) ) ...
-    + (((engine.V1A*Po) / P) - engine.V1A)); %delta_V2
 
-% Options: sets tolerance of function close to 0 (1-e14) and displays the
-% iteration, this could help with the optimization
-options = optimoptions('fsolve','Display','iter','TolFun',1e-14);
-
-%solves for P, same answer as the engine.P2 with the current finding
-%Pressure function
-P = fsolve(F,5,options)
 
 %% Functions
 % 1. Finding Specific Volume of PCM [vP]
