@@ -68,7 +68,7 @@ engine.Qin = findQin(Tlow, Thigh, engine.Tm, engine.mPCM, engine.csd, engine.Lh,
 % 6d. find the theorectical Efficiency % 
 engine.Eff = findEfficiency(engine.Est, engine.Qin);  
 
-W = Eff*Qin*mPCM;
+% W = Eff*Qin*mPCM;
 %% Find Efficiency: get efficiency using all of our inputs
 % adds a new structure field Eff2, same as Eff, but using function that
 % takes in all the inputs at once
@@ -83,13 +83,15 @@ engine % prints out the engine structure
 % Parameters to change: a new structure called input_range
 % includes all the parameters we want to test via structures
 % Field name, lowerbound, upperbound, delta, original value
-input_range.L1 = [1, 3, engine.L1];
+input_range.L1 = [0.5, 1.3, engine.L1];
 input_range.b1 = [0.08, 0.1, engine.b1];
 input_range.Lh = [0.49, 0.69, engine.Lh];
 input_range.Tm = [18, 37, engine.Tm];
 input_range.rhoS = [700, 1000, engine.rhoS];
 input_range.rhoL = [600, 900, engine.rhoL];
 input_range.mPCM = [3, 5, engine.mPCM];
+
+
 fields = string(fieldnames(input_range));
 
 delta = 21; % number of steps between upper and lower bounds, 
@@ -131,6 +133,60 @@ for j = 1:length(fields) % For each parameter we want to change
 
    original.(fields(j)) = input(3); % reverts the value back to its original value
 end
+
+%% Graphing 
+figure('Name', 'Effciency vs. Length')
+plot(parameter(1).param,parameter(1).efficiencies)
+xlabel('Length of Engine [m]')
+ylabel('Efficiency [%]')
+%%
+figure('Name', 'Effciency vs. thickness')
+plot(parameter(2).param,parameter(2).efficiencies)
+xlabel('Outer Diameter of Engine [m]')
+ylabel('Efficiency [%]')
+
+figure('Name', 'Effciency vs. latent heat')
+plot(parameter(3).param,parameter(3).efficiencies)
+xlabel('Latent Heat [kJ/kg]')
+ylabel('Efficiency [%]')
+
+figure('Name', 'Effciency vs. Melting Temp')
+plot(parameter(4).param,parameter(4).efficiencies)
+xlabel('Melting Temperature [m]')
+ylabel('Efficiency [%]')
+
+figure('Name', 'Effciency vs. Solid Density PCM')
+plot(parameter(5).param,parameter(5).efficiencies)
+xlabel('Solid Density [kg/m^3]')
+ylabel('Efficiency [%]')
+
+figure('Name', 'Effciency vs. Liquid Density PCM')
+plot(parameter(6).param,parameter(6).efficiencies)
+xlabel('Liquid Density [kg/m^3]')
+ylabel('Efficiency [%]')
+
+figure('Name', 'Effciency vs. PCM Mass')
+plot(parameter(7).param,parameter(7).efficiencies)
+xlabel('Mass [kg]')
+ylabel('Efficiency [%]')
+%% Solves for P using fsolve (pretty messy right now, i don't know how to put it in a function)
+% Funtion F is the function delta_V1 - delta_V2 = 0 all in terms of P
+    F = @(P)((pi / 4)*(engine.L1*( ( (2*engine.a1) + ...
+            ( ( (P - Po)*engine.a1*(1 - engine.v^2) ) / engine.Ey)*( ( (engine.b1^2 + engine.a1^2) / (engine.b1^2 - engine.a1^2) ) +...
+        (engine.v / (1 - engine.v) ) ))*...
+            ( ( (P - Po)*engine.a1*(1 - engine.v^2) ) / engine.Ey)*( ( (engine.b1^2 + engine.a1^2) / (engine.b1^2 - engine.a1^2) ) + ...
+        (engine.v / (1 - engine.v) ) )) ))... % delta_V1
+    - ...
+    (( engine.mPCM*((1.3e-03 - (2.66e-04*log10( 1 + ( (P - Po) / 102.12) ) )) - engine.v1P) ) + ...
+    ( engine.mH*((engine.voH - (engine.CH*log10(1 + ( (P - Po) / engine.BH) ) )) - engine.voH) ) + (((engine.V1A*Po) / P) - engine.V1A)); %delta_V2
+
+% Options: sets tolerance of function close to 0 (1-e14) and displays the
+% iteration, this could help with the optimization
+options = optimoptions('fsolve','Display','iter','TolFun',1e-14);
+
+%solves for P, same answer as the engine.P2 with the current finding
+%Pressure function
+P = fsolve(F,5,options)
 
 
 %% Functions
