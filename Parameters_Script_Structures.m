@@ -281,7 +281,7 @@ function Eff = findEfficiency2(T, Tlow, Thigh, Po, engine)
 end
 
 %Pressure to Stress Equations
-function [sigma_tan, sigma_rad, sigma_long] = PtoStress(P2, a1, b1)
+function [sigma_tan, sigma_rad, sigma_long] = pressuretoStress(P2, a1, b1)
     % sigma_tan is the tangential stress
     sigma_tan = P2*(((b1/2)^2 + (a1/2)^2) / ((b1/2)^2 - (a1/2)^2));
     
