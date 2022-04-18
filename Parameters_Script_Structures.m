@@ -201,7 +201,7 @@ function [voP, v1P, VPCM] = specificVolPCM(T,rhoS, mPCM)
 end
 
 % 3. Find inner volume of cylinder, Volume fraction of air and PCM 
-function [V,V1A, f,V1H, mH] = findVolume(a1, L1, ar, VPCM, v1H)
+function [V,V1A, f, V1H, mH] = findVolume(a1, L1, ar, VPCM, v1H)
     V = pi*L1*( (a1 / 2)^2 ); % Inner volume of Cylinder
     V1A = ar*V; % Volume of residual air
     f = VPCM / V; % volume fraction of PCM
