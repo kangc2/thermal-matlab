@@ -124,23 +124,28 @@ function [V,V1A, f, V1H, mH] = findVolume(a1, L1, ar, VPCM, v1H)
 end
 
 % 5. Finding Max Pressure [P2]
-function P2 = findPressure(Po, engine)
+function P2 = findPressure(Po, a1, v, Ey, b1, V1A, mPCM, mH, voH, L1, CH, BH, v1P)
+    % creates a symbolic variable P to plug into equations and solve for it
+    syms P; 
 
-    F = @(P)((pi / 4)*(engine.L1*( ( (2*engine.a1) + ...
-                ( ( (P - Po)*engine.a1*(1 - engine.v^2) ) / engine.Ey)*( ( (engine.b1^2 + engine.a1^2) / (engine.b1^2 - engine.a1^2) ) +...
-            (engine.v / (1 - engine.v) ) ))*...
-                ( ( (P - Po)*engine.a1*(1 - engine.v^2) ) / engine.Ey)*( ( (engine.b1^2 + engine.a1^2) / (engine.b1^2 - engine.a1^2) ) + ...
-            (engine.v / (1 - engine.v) ) )) ))... % delta_V1
-        - ...
-        (( engine.mPCM*((1.3e-03 - (2.66e-04*log10( 1 + ( (P - Po) / 102.12) ) )) - engine.v1P) ) + ...
-        ( engine.mH*((engine.voH - (engine.CH*log10(1 + ( (P - Po) / engine.BH) ) )) - engine.voH) ) + (((engine.V1A*Po) / P) - engine.V1A)); %delta_V2
+    % Change in inner diameter of cylinder at pressure P
+    delta_a1 = ( ( (P - Po)*a1*(1 - v^2) ) / Ey)*( ( (b1^2 + a1^2) / (b1^2 - a1^2) ) + (v / (1 - v) ) );
     
-        % P2 is the 1st instance where delta_V1 - delta_V2 == 0
-    options = optimoptions('fsolve','Display','iter','TolFun',1e-14);
-    
-    %solves for P, same answer as the engine.P2 with the current finding
-    %Pressure function
-    P2 = fsolve(F,5,options);
+    % First Equation of change in inner volume of cylinder at pressure P,
+    % based on geometry of cylinder
+    delta_V1 = (pi / 4)*(L1*( ( (2*a1) + delta_a1)*delta_a1) );
+   
+    vP = 1.3e-03 - (2.66e-04*log10( 1 + ( (P - Po) / 102.12) ) ); % specific volume of PCM
+    vH = voH - (CH*log10(1 + ( (P - Po) / BH) ) ); % specific volume of HF
+    VA = (V1A*Po) / P; % Volume of residual air
+   
+    % Second Equation of change in inner volume of cylinder at pressure P,
+    % based on HF and PCM mass and volume properties
+    delta_V2 = ( mPCM*(vP - v1P) ) + ( mH*(vH - voH) ) + (VA - V1A); 
+
+    % P2 is the 1st instance where delta_V1 - delta_V2 == 0
+    P2 = vpasolve(delta_V1 - delta_V2 == 0, P);
+    P2 = double(P2); % Convert to a numerical value with precision
 
 end
 
