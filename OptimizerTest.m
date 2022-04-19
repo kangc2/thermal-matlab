@@ -75,9 +75,8 @@ engine.Eff2 = findEfficiency2(T, Tlow, Thigh, Po, engine);
 
 % engine % prints out the engine structure
 
-%%
 
-[voP, v1P, VPCM] = specificVolPCM(T, engine.rhoS, engine.mPCM);
+
 %% Solves for P using fsolve (pretty messy right now, i don't know how to put it in a function)
 % Funtion F is the function delta_V1 - delta_V2 = 0 all in terms of P
     F = @(P)((pi / 4)*(engine.L1*( ( (2*engine.a1) + ...
@@ -97,7 +96,13 @@ options = optimoptions('fsolve','Display','iter','TolFun',1e-14);
 %Pressure function
 P = fsolve(F,5,options)
 
-
+%%
+% intial guess
+engine.L1 = 1; % Length of the cylinder [m]
+% Call solver to minimize the objective function given the constraint
+xopt = fmincon(@objective, engine, [], [], [], [], [], [], @constraint, [])
+effOpt = findEfficiency2(T, Tlow, Thigh, Po, engine)
+surfaceAreaOpt = calcSurface(xopt)
 %% Functions
 % 1. Finding Specific Volume of PCM [vP]
 function [voP, v1P, VPCM] = specificVolPCM(T, rhoS, mPCM)
@@ -193,4 +198,20 @@ function [sigma_tan, sigma_rad, sigma_long] = pressuretoStress(P2, a1, b1)
     
     %sigma_long is the longitudinal stress on the ends
     sigma_long = (P2*(a1/2)^2)/((b1/2)^2 - (a1/2)^2);
+end
+
+function obj = objective(T, Tlow, Thigh, Po, engine)
+    [voP, v1P, VPCM] = specificVolPCM(T, engine.rhoS, engine.mPCM);
+    [V,V1A, f, V1H, mH] = findVolume(engine.a1, engine.L1, engine.ar, VPCM, engine.v1H);
+    P2 = findPressure(Po, engine);
+    delta_V1 = findChangeInnerVolume(Po, engine.a1, engine.b1, engine.L1, engine.v, engine.Ey, P2);
+    Pa = findPa(Po, P2, engine.V1N, delta_V1, V1A, V, f, v1P, voP, engine.CP, engine.BP, engine.CH, engine.BH, engine.v1H);
+    Est = findEst(Pa, engine.V1N, engine.mPCM, engine.rhoL, engine.rhoS);
+    Qin = findQin(Tlow, Thigh, engine.Tm, engine.mPCM, engine.csd, engine.Lh, engine.cld);
+    Eff = Est / (Qin*1e3)*100;
+end
+
+function [c, ceq] = constraint(engine)
+    c = engine.L1 - 3;
+    ceq = [];
 end

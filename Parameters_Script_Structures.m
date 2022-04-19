@@ -187,8 +187,6 @@ options = optimoptions('fsolve','Display','iter','TolFun',1e-14);
 %solves for P, same answer as the engine.P2 with the current finding
 %Pressure function
 P = fsolve(F,5,options)
-
-
 %% Functions
 % 1. Finding Specific Volume of PCM [vP]
 function [voP, v1P, VPCM] = specificVolPCM(T,rhoS, mPCM)
