@@ -52,7 +52,8 @@ engine.ar = 6.573 / 100; % Volume fraction of residual air
 [engine.V,engine.V1A, engine.f, engine.V1H, engine.mH] = findVolume(engine.a1, engine.L1, engine.ar, engine.VPCM, engine.v1H);
 
 % 5. Finding Max Pressure [P2]
-engine.P2 = findPressure(Po, engine);
+engine.P2 = findPressure(Po, engine.a1, engine.v, engine.Ey, engine.b1, engine.V1A, ...
+    engine.mPCM, engine.mH, engine.voH, engine.L1, engine.CH, engine.BH, engine.v1P);
 
 % 4. Finding change of Inner Diameter of Tube Under Internal Pressure
 engine.delta_V1 = findChangeInnerVolume(Po, engine.a1, engine.b1, engine.L1, engine.v, engine.Ey, engine.P2);
@@ -74,35 +75,34 @@ engine.Eff = findEfficiency(engine.Est, engine.Qin);
 engine.Eff2 = findEfficiency2(T, Tlow, Thigh, Po, engine);
 
 % engine % prints out the engine structure
-
-
-
-%% Solves for P using fsolve (pretty messy right now, i don't know how to put it in a function)
-% Funtion F is the function delta_V1 - delta_V2 = 0 all in terms of P
-    F = @(P)((pi / 4)*(engine.L1*( ( (2*engine.a1) + ...
-            ( ( (P - Po)*engine.a1*(1 - engine.v^2) ) / engine.Ey)*( ( (engine.b1^2 + engine.a1^2) / (engine.b1^2 - engine.a1^2) ) +...
-        (engine.v / (1 - engine.v) ) ))*...
-            ( ( (P - Po)*engine.a1*(1 - engine.v^2) ) / engine.Ey)*( ( (engine.b1^2 + engine.a1^2) / (engine.b1^2 - engine.a1^2) ) + ...
-        (engine.v / (1 - engine.v) ) )) ))... % delta_V1
-    - ...
-    (( engine.mPCM*((1.3e-03 - (2.66e-04*log10( 1 + ( (P - Po) / 102.12) ) )) - engine.v1P) ) + ...
-    ( engine.mH*((engine.voH - (engine.CH*log10(1 + ( (P - Po) / engine.BH) ) )) - engine.voH) ) + (((engine.V1A*Po) / P) - engine.V1A)); %delta_V2
-
-% Options: sets tolerance of function close to 0 (1-e14) and displays the
-% iteration, this could help with the optimization
-options = optimoptions('fsolve','Display','iter','TolFun',1e-14);
-
-%solves for P, same answer as the engine.P2 with the current finding
-%Pressure function
-P = fsolve(F,5,options)
-
 %%
+s = struct('f1', [1, 3, 2, 4]);
+a=[];
+fields = string(fieldnames(engine));
+
+lenS=length(fields);
+for i=1:1:lenS
+    if i > 3
+        a = [ a engine.(fields(i))];
+    end
+end
+
+%% Optimizer Testing
 % intial guess
-engine.L1 = 1; % Length of the cylinder [m]
+a(1) = 1; % Length of the cylinder [m]
 % Call solver to minimize the objective function given the constraint
-xopt = fmincon(@objective, engine, [], [], [], [], [], [], @constraint, [])
+
+% options = optimoptions('fmincon','Display','iter','Algorithm','sqp');
+% problem.options = options;
+% problem.solver = 'fmincon';
+% problem.objective = objective();
+% problem.x0 = [0,0];
+
+x0 = [a, T, Tlow, Thigh, Po];
+xopt = fmincon(@objective, x0, [], [], [], [], [], [], @constraint, [])
+engine.L1 = xopt;
 effOpt = findEfficiency2(T, Tlow, Thigh, Po, engine)
-surfaceAreaOpt = calcSurface(xopt)
+
 %% Functions
 % 1. Finding Specific Volume of PCM [vP]
 function [voP, v1P, VPCM] = specificVolPCM(T, rhoS, mPCM)
@@ -123,27 +123,50 @@ function [V,V1A, f, V1H, mH] = findVolume(a1, L1, ar, VPCM, v1H)
     mH = ( (V*(1 - f) ) - V1A) / v1H; % mass of HF
 end
 
-% 5. Finding Max Pressure [P2]
-function P2 = findPressure(Po, engine)
+% % 5. Finding Max Pressure [P2]
+% function P2 = findPressure(Po, engine)
+% 
+%     F = @(P)((pi / 4)*(engine.L1*( ( (2*engine.a1) + ...
+%                 ( ( (P - Po)*engine.a1*(1 - engine.v^2) ) / engine.Ey)*( ( (engine.b1^2 + engine.a1^2) / (engine.b1^2 - engine.a1^2) ) +...
+%             (engine.v / (1 - engine.v) ) ))*...
+%                 ( ( (P - Po)*engine.a1*(1 - engine.v^2) ) / engine.Ey)*( ( (engine.b1^2 + engine.a1^2) / (engine.b1^2 - engine.a1^2) ) + ...
+%             (engine.v / (1 - engine.v) ) )) ))... % delta_V1
+%         - ...
+%         (( engine.mPCM*((1.3e-03 - (2.66e-04*log10( 1 + ( (P - Po) / 102.12) ) )) - engine.v1P) ) + ...
+%         ( engine.mH*((engine.voH - (engine.CH*log10(1 + ( (P - Po) / engine.BH) ) )) - engine.voH) ) + (((engine.V1A*Po) / P) - engine.V1A)); %delta_V2
+%     
+%         % P2 is the 1st instance where delta_V1 - delta_V2 == 0
+%     options = optimoptions('fsolve','Display','iter','TolFun',1e-14);
+%     
+%     %solves for P, same answer as the engine.P2 with the current finding
+%     %Pressure function
+%     P2 = fsolve(F,5,options);
+% 
+% end
+function P2 = findPressure(Po, a1, v, Ey, b1, V1A, mPCM, mH, voH, L1, CH, BH, v1P)
+    % creates a symbolic variable P to plug into equations and solve for it
+    syms P; 
 
-    F = @(P)((pi / 4)*(engine.L1*( ( (2*engine.a1) + ...
-                ( ( (P - Po)*engine.a1*(1 - engine.v^2) ) / engine.Ey)*( ( (engine.b1^2 + engine.a1^2) / (engine.b1^2 - engine.a1^2) ) +...
-            (engine.v / (1 - engine.v) ) ))*...
-                ( ( (P - Po)*engine.a1*(1 - engine.v^2) ) / engine.Ey)*( ( (engine.b1^2 + engine.a1^2) / (engine.b1^2 - engine.a1^2) ) + ...
-            (engine.v / (1 - engine.v) ) )) ))... % delta_V1
-        - ...
-        (( engine.mPCM*((1.3e-03 - (2.66e-04*log10( 1 + ( (P - Po) / 102.12) ) )) - engine.v1P) ) + ...
-        ( engine.mH*((engine.voH - (engine.CH*log10(1 + ( (P - Po) / engine.BH) ) )) - engine.voH) ) + (((engine.V1A*Po) / P) - engine.V1A)); %delta_V2
+    % Change in inner diameter of cylinder at pressure P
+    delta_a1 = ( ( (P - Po)*a1*(1 - v^2) ) / Ey)*( ( (b1^2 + a1^2) / (b1^2 - a1^2) ) + (v / (1 - v) ) );
     
-        % P2 is the 1st instance where delta_V1 - delta_V2 == 0
-    options = optimoptions('fsolve','Display','iter','TolFun',1e-14);
-    
-    %solves for P, same answer as the engine.P2 with the current finding
-    %Pressure function
-    P2 = fsolve(F,5,options);
+    % First Equation of change in inner volume of cylinder at pressure P,
+    % based on geometry of cylinder
+    delta_V1 = (pi / 4)*(L1*( ( (2*a1) + delta_a1)*delta_a1) );
+   
+    vP = 1.3e-03 - (2.66e-04*log10( 1 + ( (P - Po) / 102.12) ) ); % specific volume of PCM
+    vH = voH - (CH*log10(1 + ( (P - Po) / BH) ) ); % specific volume of HF
+    VA = (V1A*Po) / P; % Volume of residual air
+   
+    % Second Equation of change in inner volume of cylinder at pressure P,
+    % based on HF and PCM mass and volume properties
+    delta_V2 = ( mPCM*(vP - v1P) ) + ( mH*(vH - voH) ) + (VA - V1A); 
+
+    % P2 is the 1st instance where delta_V1 - delta_V2 == 0
+    P2 = vpasolve(delta_V1 - delta_V2 == 0, P);
+    P2 = double(P2); % Convert to a numerical value with precision
 
 end
-
 % 4. Finding change of Inner Diameter of Tube Under Internal Pressure
 function delta_V1 = findChangeInnerVolume(Po, a1, b1, L1, v, Ey, P2)
     delta_a1 = ( ( (P2 - Po)*a1*(1 - v^2) ) / Ey)*( ( (b1^2 + a1^2) / ...
@@ -188,6 +211,22 @@ function Eff = findEfficiency2(T, Tlow, Thigh, Po, engine)
     Eff = Est / (Qin*1e3)*100;
 end
 
+function Eff = findEfficiency4(a)  
+    [voP, v1P, VPCM] = specificVolPCM(a(35), a(6), a(8));
+    [V,V1A, f, V1H, mH] = findVolume(a(2), a(1), a(20), VPCM, a(14));
+    P2 = findPressure(a(38), a(2), a(5), a(4), a(3), V1A, a(8), mH, a(13), a(1), a(18), a(17), v1P);
+    delta_V1 = findChangeInnerVolume(a(38), a(2), a(3), a(1), a(5), a(4), P2);
+%     Pa = findPa(Po, P2, engine.V1N, delta_V1, V1A, V, f, v1P, voP, engine.CP, engine.BP, engine.CH, engine.BH, engine.v1H);
+%     Est = findEst(Pa, engine.V1N, engine.mPCM, engine.rhoL, engine.rhoS);
+%     Qin = findQin(Tlow, Thigh, engine.Tm, engine.mPCM, engine.csd, engine.Lh, engine.cld);
+%     Eff = Est / (Qin*1e3)*100;
+    Pa = findPa(a(38), P2, a(19), delta_V1, V1A, V, f, v1P, voP, a(15), a(16), a(18), a(17), a(14));
+    Est = findEst(Pa, a(19), a(8), a(7), a(6));
+    Qin = findQin(a(36), a(37), a(9), a(8), a(10), a(12), a(11));
+    Eff = Est / (Qin*1e3)*100;
+end
+
+
 %Pressure to Stress Equations
 function [sigma_tan, sigma_rad, sigma_long] = pressuretoStress(P2, a1, b1)
     % sigma_tan is the tangential stress
@@ -200,15 +239,10 @@ function [sigma_tan, sigma_rad, sigma_long] = pressuretoStress(P2, a1, b1)
     sigma_long = (P2*(a1/2)^2)/((b1/2)^2 - (a1/2)^2);
 end
 
-function obj = objective(T, Tlow, Thigh, Po, engine)
-    [voP, v1P, VPCM] = specificVolPCM(T, engine.rhoS, engine.mPCM);
-    [V,V1A, f, V1H, mH] = findVolume(engine.a1, engine.L1, engine.ar, VPCM, engine.v1H);
-    P2 = findPressure(Po, engine);
-    delta_V1 = findChangeInnerVolume(Po, engine.a1, engine.b1, engine.L1, engine.v, engine.Ey, P2);
-    Pa = findPa(Po, P2, engine.V1N, delta_V1, V1A, V, f, v1P, voP, engine.CP, engine.BP, engine.CH, engine.BH, engine.v1H);
-    Est = findEst(Pa, engine.V1N, engine.mPCM, engine.rhoL, engine.rhoS);
-    Qin = findQin(Tlow, Thigh, engine.Tm, engine.mPCM, engine.csd, engine.Lh, engine.cld);
-    Eff = Est / (Qin*1e3)*100;
+function obj = objective(x0)
+%     obj = findEfficiency4(T, Tlow, Thigh, Po, a);
+    obj = findEfficiency4(x0);
+
 end
 
 function [c, ceq] = constraint(engine)
