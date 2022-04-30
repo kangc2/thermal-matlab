@@ -136,41 +136,7 @@ for j = 1:length(fields) % For each parameter we want to change
    original.(fields(j)) = input(3); % reverts the value back to its original value
 end
 
-%% Graphing 
-figure('Name', 'Effciency vs. Length')
-plot(parameter(1).param,parameter(1).efficiencies)
-xlabel('Length of Engine [m]')
-ylabel('Efficiency [%]')
-%%
-figure('Name', 'Effciency vs. thickness')
-plot(parameter(2).param,parameter(2).efficiencies)
-xlabel('Outer Diameter of Engine [m]')
-ylabel('Efficiency [%]')
 
-figure('Name', 'Effciency vs. latent heat')
-plot(parameter(3).param,parameter(3).efficiencies)
-xlabel('Latent Heat [kJ/kg]')
-ylabel('Efficiency [%]')
-
-figure('Name', 'Effciency vs. Melting Temp')
-plot(parameter(4).param,parameter(4).efficiencies)
-xlabel('Melting Temperature [m]')
-ylabel('Efficiency [%]')
-
-figure('Name', 'Effciency vs. Solid Density PCM')
-plot(parameter(5).param,parameter(5).efficiencies)
-xlabel('Solid Density [kg/m^3]')
-ylabel('Efficiency [%]')
-
-figure('Name', 'Effciency vs. Liquid Density PCM')
-plot(parameter(6).param,parameter(6).efficiencies)
-xlabel('Liquid Density [kg/m^3]')
-ylabel('Efficiency [%]')
-
-figure('Name', 'Effciency vs. PCM Mass')
-plot(parameter(7).param,parameter(7).efficiencies)
-xlabel('Mass [kg]')
-ylabel('Efficiency [%]')
 %% Solves for P using fsolve (pretty messy right now, i don't know how to put it in a function)
 % Funtion F is the function delta_V1 - delta_V2 = 0 all in terms of P
     F = @(P)((pi / 4)*(engine.L1*( ( (2*engine.a1) + ...
