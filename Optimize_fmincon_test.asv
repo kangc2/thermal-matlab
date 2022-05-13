@@ -8,7 +8,7 @@ Thigh = T; % High Temperature
 Tlow = 5; % Low Temperature [degC]
 Po = 0.101; % Initial Pressure/ambient pressure = atmospheric pressure [MPa]
 
-%% Parameters: Declare Variables and intial guessesengine.
+%% Parameters: Declare Variables and intial guesses
 % Variables can be changed by the optimizer
 
 % -> Intro names
@@ -18,14 +18,15 @@ engine.hull_material = "TA2M (Titanium alloy)";
 
 % -> Geometry Properties of Cylinder
 engine.L1 = 1.31; % Length of the cylinder [m]
+% engine.a1 = 7.7e-02; % Internal diameter of the cylinder [m]
 engine.b1 = 0.15; % External diameter of the cylinder [m]
-t = 0.035; % wall thickness [m]
+t = 0.035; %wall thickness [m]
 engine.a1 = engine.b1 - 2*t; % Internal diameter of the cylinder [m]
 
 % -> Hull Material Properties
 engine.Ey = 105e03; % Young's Modulus [MPa]
 engine.v = 0.33; % Poisson's ratio
-% engine.yield = 340; % Compressive/Tensile Yield Stress (from google) [MPa]
+engine.yield = 340; % Compressive/Tensile Yield Stress (from google) [MPa]
 
 % -> Material Properties of PCM
 engine.rhoS = 864; % Density of PCM - Solid phase [kg/m3]
@@ -70,7 +71,7 @@ for i = 1:1:lenEngine
         inputs = [ inputs engine.(fields(i))];
     end
 end
-
+inputs
 %%
 % Step 2: Run in findEfficiency3
 Eff = findEfficiency(inputs)
@@ -78,11 +79,9 @@ Eff = findEfficiency(inputs)
 %%
 % Step 3: Run in fmincon
 x0 = inputs;
-x0(12) = 3;
-x0(5) = .7;
-x0(6) = .12;
-x(16) = 240;
-x(10) = 800;
+x0(5) = 0.8;
+x0(6) = 7.7e-2;
+
 xopt = fmincon(@objective, x0, [], [], [], [], [], [], @constraint, []);
 xopt(5) % L1
 effOpt = findEfficiency(xopt)
@@ -98,8 +97,8 @@ end
 function [c, ceq] = constraint(x)
     c(1) = x(5) - 1.3; % L1 < 1.3
     c(2) = 0.5 - x(5); % L1 > 0.5
-    c(3) = x(6) - 0.15; % b1 < 0.15
-    c(4) = 0.09 - x(6); % b1 > 0.08 
+    c(3) = x(7) - 0.15; % b1 < 0.15
+    c(4) = 8e-2 - x(7); % mPCM > 0.08 
     c(5) = x(12) - 15; % mPCM < 15
     c(6) = 18 - x(13); % Tm > 18
     c(7) = x(16) - 270; % Lh < 270
@@ -137,7 +136,7 @@ function Eff = findEfficiency(x)
 
 
     % 3. Finding Volume Of Cylinder
-    V = pi*x(5)*( (  x(7) / 2)^2 ); % Inner volume of Cylinder
+    V = pi*x(5)*( (x(6) / 2)^2 ); % Inner volume of Cylinder
     
     V1A = x(24)*V; % Volume of residual air
     rPCM = VPCM / V;
@@ -145,12 +144,12 @@ function Eff = findEfficiency(x)
     mH = ( (V*(1 - rPCM) ) - V1A) / x(18);
     f = rPCM;
 
-        F = @(P)((pi / 4)*(x(5)*( ( (2*  x(7)) + ...
-        ( ( (P - x(4))*  x(7)*(1 - x(9)^2) ) / x(8)) ...
-            *( ( ( x(6)^2 +   x(7)^2) / ( x(6)^2 -   x(7)^2) ) +...
+        F = @(P)((pi / 4)*(x(5)*( ( (2*x(6)) + ...
+        ( ( (P - x(4))*x(6)*(1 - x(9)^2) ) / x(8)) ...
+            *( ( (x(7)^2 + x(6)^2) / (x(7)^2 - x(6)^2) ) +...
         (x(9) / (1 - x(9)) ) ))*...
-            ( ( (P - x(4))*  x(7)*(1 - x(9)^2) ) / x(8)) ...
-            *( ( ( x(6)^2 +   x(7)^2) / ( x(6)^2 -   x(7)^2) ) + ...
+            ( ( (P - x(4))*x(6)*(1 - x(9)^2) ) / x(8)) ...
+            *( ( (x(7)^2 + x(6)^2) / (x(7)^2 - x(6)^2) ) + ...
         (x(9) / (1 - x(9)) ) )) ))... % delta_V1
         - ...
         (( x(12)*((1.3e-03 - (2.66e-04*log10( 1 + ( (P - x(4)) / 102.12) ) )) - v1P) ) + ...
@@ -166,8 +165,8 @@ function Eff = findEfficiency(x)
     P2 = fsolve(F,5,options);
     
     % 6. Finding Efficiency [Eff] 
-    delta_a1 = ( ( (P2 - x(4))*  x(7)*(1 - x(9)^2) ) / x(8))*( ( ( x(6)^2 +   x(7)^2) / ( x(6)^2 -   x(7)^2) ) + (x(9) / (1 - x(9)) ) );
-    delta_V1 = (pi / 4)*(x(5)*( ( (2*  x(7)) + delta_a1)*delta_a1) );
+    delta_a1 = ( ( (P2 - x(4))*x(6)*(1 - x(9)^2) ) / x(8))*( ( (x(7)^2 + x(6)^2) / (x(7)^2 - x(6)^2) ) + (x(9) / (1 - x(9)) ) );
+    delta_V1 = (pi / 4)*(x(5)*( ( (2*x(6)) + delta_a1)*delta_a1) );
     
     Pa = (P2 / x(23))*(delta_V1 + x(23) - V1A*( (x(4) / P2) - 1) ...
        - (V*f / v1P)*(voP - x(19)*log10(1 + ((P2 - x(4)) / x(20)) ) - v1P) + ((V*(1 - f) - V1A) / x(18)) ...
@@ -176,17 +175,22 @@ function Eff = findEfficiency(x)
     Qin = x(12)*x(14)*(x(13) - x(3)) + x(12)*x(16) + x(12)*x(15)*(x(2) - x(13));
     Est = -Pa*1e6*x(23)*log(1 - (x(12) / x(23))*((1 / x(11)) - (1 / x(10))) );
     Eff = Est / (Qin*1e3) * 100;
+    
+
 end
 
-function stress = PtoStress(x)
+
+
+
+
+function stress = PtoStress(engine)
     % sigma_tan is the tangential stress
-    sigma_tan = P2*(((  x(6)/2)^2 + ( x(7)/2)^2) / ((  x(6)/2)^2 - ( x(7)/2)^2));
+    sigma_tan = P2*(((x(6)/2)^2 + (x(7)/2)^2) / ((x(6)/2)^2 - (x(7)/2)^2));
     
     %sigma_rad is the radial stress
-    sigma_rad = -P2;
+    sigma_rad = -engine.P2;
     
     %sigma_long is the longitudinal stress on the ends
-    sigma_long = (P2*( x(7)/2)^2)/((  x(6)/2)^2 - ( x(7)/2)^2);
+    sigma_long = (P2*(x(7)/2)^2)/((x(6)/2)^2 - (x(7)/2)^2);
     stress = max([sigma_tan, sigma_rad, sigma_long]);
 end
-
