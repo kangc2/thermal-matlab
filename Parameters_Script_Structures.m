@@ -16,15 +16,19 @@ engine.hull_material = 'TA2M (Titanium alloy)';
 
 % -> Geometry & Material Properties of Cylinder
 engine.L1 = 1.31; % Length of the cylinder [m]
-engine.a1 = 7.7e-02; % Internal diameter of the cylinder [m]
-engine.b1 = 8.6e-02; % External diameter of the cylinder [m]
+%engine.a1 = 7.7e-02; % Internal diameter of the cylinder [m]
+engine.b1 = 0.15; % External diameter of the cylinder [m]
+engine.t = 0.035; %wall thickness [m]
+engine.a1 = engine.b1 - 2*engine.t; % Internal diameter of the cylinder [m]
 engine.Ey = 105e03; % Young's Modulus [MPa]
 engine.v = 0.33; % Poisson's ratio
 
 % -> Material Properties of PCM
 engine.rhoS = 864; % Density of PCM - Solid phase [kg/m3]
 engine.rhoL = 773; % Density of PCM - Liquid phase [kg/m3]
-engine.mPCM = 3.456; % Mass of PCM [kg]
+engine.f = 0.6557; %Volume fraction of PCM
+%engine.mPCM = 3.456; % Mass of PCM [kg]
+engine.mPCM = (engine.f*pi*engine.L1*( (engine.a1 / 2)^2 ))/(1/engine.rhoS);
 engine.Tm = 18.2; % Melting Temperature of PCM [degC]
 
 % -> Heat Transfer Properties
@@ -67,8 +71,7 @@ engine.Est = findEst(engine.Pa, engine.V1N, engine.mPCM, engine.rhoL, engine.rho
 engine.Qin = findQin(Tlow, Thigh, engine.Tm, engine.mPCM, engine.csd, engine.Lh, engine.cld);
 % 6d. find the theorectical Efficiency % 
 engine.Eff = findEfficiency(engine.Est, engine.Qin);  
-%7. Finding Energy Output [W] (kJ)
-W = Eff*Qin*mPCM; 
+ 
 
 % W = Eff*Qin*mPCM;
 %% Find Efficiency: get efficiency using all of our inputs
@@ -115,6 +118,8 @@ for j = 1:length(fields) % For each parameter we want to change
     for i= 0:delta
        % Find what the value is for the changing variable
         z = ((u - l) / delta) * i;
+        original.a1 = engine.b1 - 2*engine.t %Updating thickness/interior diam.
+        original.mPCM = (original.f*pi*original.L1*( (original.a1 / 2)^2 ))/(1/original.rhoS)
         original.(fields(j)) = z + l; % Changed value for a variable
         
         % Find Efficiency value
@@ -136,41 +141,7 @@ for j = 1:length(fields) % For each parameter we want to change
    original.(fields(j)) = input(3); % reverts the value back to its original value
 end
 
-%% Graphing 
-figure('Name', 'Effciency vs. Length')
-plot(parameter(1).param,parameter(1).efficiencies)
-xlabel('Length of Engine [m]')
-ylabel('Efficiency [%]')
-%%
-figure('Name', 'Effciency vs. thickness')
-plot(parameter(2).param,parameter(2).efficiencies)
-xlabel('Outer Diameter of Engine [m]')
-ylabel('Efficiency [%]')
 
-figure('Name', 'Effciency vs. latent heat')
-plot(parameter(3).param,parameter(3).efficiencies)
-xlabel('Latent Heat [kJ/kg]')
-ylabel('Efficiency [%]')
-
-figure('Name', 'Effciency vs. Melting Temp')
-plot(parameter(4).param,parameter(4).efficiencies)
-xlabel('Melting Temperature [m]')
-ylabel('Efficiency [%]')
-
-figure('Name', 'Effciency vs. Solid Density PCM')
-plot(parameter(5).param,parameter(5).efficiencies)
-xlabel('Solid Density [kg/m^3]')
-ylabel('Efficiency [%]')
-
-figure('Name', 'Effciency vs. Liquid Density PCM')
-plot(parameter(6).param,parameter(6).efficiencies)
-xlabel('Liquid Density [kg/m^3]')
-ylabel('Efficiency [%]')
-
-figure('Name', 'Effciency vs. PCM Mass')
-plot(parameter(7).param,parameter(7).efficiencies)
-xlabel('Mass [kg]')
-ylabel('Efficiency [%]')
 %% Solves for P using fsolve (pretty messy right now, i don't know how to put it in a function)
 % Funtion F is the function delta_V1 - delta_V2 = 0 all in terms of P
     F = @(P)((pi / 4)*(engine.L1*( ( (2*engine.a1) + ...
