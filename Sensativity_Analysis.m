@@ -1,4 +1,4 @@
-%Check Parameters with STRUCTURES
+% Sensativity Analysis: Same as Parameters_Script_Structures
 clc; close all; clear
 %% Environmental Parameters
 % Variables of the environment, not specific to the engine
@@ -50,6 +50,7 @@ engine.CH = 0.3150*engine.voH;
 % -> Accumulator Parameters
 engine.V1N = 2e-03; % Initial Volume of N2 gas
 engine.ar = 6.573 / 100; % Volume fraction of residual air
+
 %% Define Outputs in 'engine' structure using Functions
 % 1 Find specific volume of PCM under ambient pressure Po, volume and mass of PCM [voP]
 [engine.voP, engine.v1P, engine.VPCM] = specificVolPCM(T, engine.rhoS, engine.mPCM);
@@ -139,6 +140,7 @@ for j = 1:length(fields) % For each parameter we want to change
 
    original.(fields(j)) = input(3); % reverts the value back to its original value
 end
+
 
 %% Functions
 % 1. Finding Specific Volume of PCM [vP]
