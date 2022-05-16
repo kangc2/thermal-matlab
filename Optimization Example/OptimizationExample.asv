@@ -1,0 +1,32 @@
+
+
+
+
+% Define function to calculate volume of box
+function findVolume = calcVolume(x)
+    length = x(1);
+    width = x(2);
+    height = x(3);
+
+    volume = length*width*height;
+end
+
+% Define function to calculate surface area of box
+function surfaceArea = calcSurface(x)
+    length = x(1);
+    width = x(2);
+    height = x(3);
+    surfaceArea = 2*length*width + 2*length*height +...
+        2*height*width;
+end
+
+% Define objective function for optimization
+function obj = objective(x)
+    obj = calcVolume(x);
+end
+
+% Define constraint for optimization
+function [c, ceq] = constraint(x)
+    c = calcSurface(x) - 10;
+    ceq = [];
+end
