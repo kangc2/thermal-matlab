@@ -70,6 +70,31 @@ for i = 1:1:lenEngine
     end
 end
 
+% Inputs List
+% x(1) = T
+% x(2) = Thigh
+% x(3) = Tlow
+% x(4) = Po
+% x(5) = L1
+% x(6) = b1
+% x(7) = a1
+% x(8) = Ey
+% x(9) = v
+% x(10) = rhoS
+% x(11) = rhoL
+% x(12) = mPCM
+% x(13) = Tm
+% x(14) = csd
+% x(15) = cld
+% x(16) = Lh
+% x(17) = voH
+% x(18) = v1H
+% x(19) = CP
+% x(20) = BP
+% x(21) = BH
+% x(22) = CH
+% x(23) = V1N
+% x(24) = ar
 %%
 % Step 2: Run in findEfficiency3
 Eff = findEfficiency(inputs)
