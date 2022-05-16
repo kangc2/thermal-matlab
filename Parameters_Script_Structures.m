@@ -15,9 +15,9 @@ engine.working_fluid = 'Water';
 engine.hull_material = 'TA2M (Titanium alloy)';
 
 % -> Geometry & Material Properties of Cylinder
-engine.L1 = 1.31; % Length of the cylinder [m]
+engine.L1 = 1.3; % Length of the cylinder [m]
 engine.b1 = 0.15; % External diameter of the cylinder [m]
-engine.t = 0.035; %wall thickness [m]
+engine.t = 0.01; %wall thickness [m]
 engine.a1 = engine.b1 - 2*engine.t; % Internal diameter of the cylinder [m]
 
 engine.Ey = 105e03; % Young's Modulus [MPa]
@@ -87,14 +87,14 @@ engine % prints out the engine structure
 % Parameters to change: a new structure called input_range
 % includes all the parameters we want to test via structures
 % Field name, lowerbound, upperbound, delta, original value
-input_range.L1 = [0.5, 1.3, engine.L1];
+input_range.L1 = [0.3, 1.3, engine.L1];
 input_range.b1 = [0.09, 0.17, engine.b1];
 input_range.Lh = [220, 280, engine.Lh];
 input_range.Tm = [18, 37, engine.Tm];
 input_range.rhoS = [700, 1000, engine.rhoS];
 input_range.mPCM = [3, 5, engine.mPCM];
-input_range.t = [0.01, 0.04, engine.t];
-input_range.f = [0.1, 0.9, engine.f];
+% input_range.t = [0.01, 0.04, engine.t];
+% input_range.f = [0.1, 0.9, engine.f];
 
 fields = string(fieldnames(input_range));
 
@@ -169,16 +169,6 @@ ylabel('Efficiency [%]')
 figure('Name', 'Effciency vs. PCM Mass')
 plot(parameter(6).param, parameter(6).efficiencies)
 xlabel('Mass [kg]')
-ylabel('Efficiency [%]')
-
-figure('Name', 'Effciency vs. thickness')
-plot(parameter(7).param, parameter(7).efficiencies)
-xlabel('thickness [m]')
-ylabel('Efficiency [%]')
-
-figure('Name', 'Effciency vs. volume fraction')
-plot(parameter(8).param, parameter(8).efficiencies)
-xlabel('f [%]')
 ylabel('Efficiency [%]')
 %% Functions
 % 1. Finding Specific Volume of PCM [vP]
@@ -266,16 +256,27 @@ function Eff = findEfficiency2(T, Tlow, Thigh, Po, engine)
 end
 
 %Pressure to Stress Equations
-function stress = PtoStress(engine)
-    % sigma_tan is the tangential stress
-    sigma_tan = engine.P2*(((engine.b1/2)^2 + (engine.a1/2)^2) / ((engine.b1/2)^2 - (engine.a1/2)^2));
+function stress_vm = PtoStress(engine)
+    % sigma_tan is the tangential (axial) stress
+    stress_tan = engine.P2*(((engine.b1/2)^2 + (engine.a1/2)^2) / ((engine.b1/2)^2 - (engine.a1/2)^2));
     
     %sigma_rad is the radial stress
-    sigma_rad = -engine.P2;
+    stress_rad = -engine.P2;
     
-    %sigma_long is the longitudinal stress on the ends
-    sigma_long = (engine.P2*(engine.a1/2)^2)/((engine.b1/2)^2 - (engine.a1/2)^2);
-    stress = max([sigma_tan, sigma_rad, sigma_long]);
+    %sigma_long is the longitudinal (hoop) stress on the ends
+    stress_long = (engine.P2*(engine.a1/2)^2)/((engine.b1/2)^2 - (engine.a1/2)^2);
+
+    % von Mises Stress
+    stress_vm = sqrt(((stress_tan - stress_rad)^2 + (stress_rad - stress_long)^2 ...
+    + (stress_long - stress_tan)^2) / 2);
 end
+
+% Work
+% W = P*V
+
+% Work to Buoyancy
+
+
+% Energy Equation
 
 % writetable(struct2table(parameter), 'someexcelfile.xlsx')

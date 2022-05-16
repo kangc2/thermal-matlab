@@ -8,7 +8,7 @@ Thigh = T; % High Temperature
 Tlow = 5; % Low Temperature [degC]
 Po = 0.101; % Initial Pressure/ambient pressure = atmospheric pressure [MPa]
 
-%% Parameters: Declare Variables and intial guessesengine.
+%% Parameters: Declare Variables and intial guesses
 % Variables can be changed by the optimizer
 
 % -> Intro names
@@ -25,7 +25,6 @@ engine.a1 = engine.b1 - 2*t; % Internal diameter of the cylinder [m]
 % -> Hull Material Properties
 engine.Ey = 105e03; % Young's Modulus [MPa]
 engine.v = 0.33; % Poisson's ratio
-% engine.yield = 340; % Compressive/Tensile Yield Stress (from google) [MPa]
 
 % -> Material Properties of PCM
 engine.rhoS = 864; % Density of PCM - Solid phase [kg/m3]
@@ -79,12 +78,11 @@ Eff = findEfficiency(inputs)
 % Step 3: Run in fmincon
 x0 = inputs;
 x0(12) = 3;
-x0(5) = .7;
+x0(5) = .8;
 x0(6) = .12;
 x(16) = 240;
 x(10) = 800;
 xopt = fmincon(@objective, x0, [], [], [], [], [], [], @constraint, []);
-xopt(5) % L1
 effOpt = findEfficiency(xopt)
 
 %% Functions: Optimization
@@ -100,12 +98,11 @@ function [c, ceq] = constraint(x)
     c(2) = 0.5 - x(5); % L1 > 0.5
     c(3) = x(6) - 0.15; % b1 < 0.15
     c(4) = 0.09 - x(6); % b1 > 0.08 
-    c(5) = x(12) - 15; % mPCM < 15
-    c(6) = 18 - x(13); % Tm > 18
-    c(7) = x(16) - 270; % Lh < 270
-    c(8) = 210 - x(16); % Lh < 210
-    c(9) = x(10) - 1200; % rhoS < 1200
-    c(10) = 750 - x(10); % rhoS > 750
+    c(5) = x(12) - 5; % mPCM < 15
+    c(6) = x(16) - 270; % Lh < 270
+    c(7) = 210 - x(16); % Lh < 210
+    c(8) = x(10) - 1200; % rhoS < 1200
+    c(9) = 750 - x(10); % rhoS > 750
 
     ceq(1) = x(1) - 29; % T = 29
     ceq(2) = x(2) - 29; % Thigh = 29
@@ -113,8 +110,8 @@ function [c, ceq] = constraint(x)
     ceq(4) = x(4) - 0.101; % Po = 0.101
     ceq(5) = x(8) - 105e3; % Ey = 105e3
     ceq(6) = x(9) - 0.33; % v = 0.33
-    ceq(7) = x(14) - 7.7e-2; % csd = 7.7e2 
-    ceq(8) = x(15) - 7.7e-2; % cld = 7.7e2
+    ceq(7) = x(14) - 1.64; % csd = 7.7e2 
+    ceq(8) = x(15) - 2.09; % cld = 7.7e2
     ceq(9) = x(17) - 1/1000; % voH = 1/1000
     ceq(10) = x(18) - 1/1000; % v1H = 1/1000
     ceq(11) = x(19) - 2.66e-4; % CP = 2.66e-4
@@ -123,7 +120,8 @@ function [c, ceq] = constraint(x)
     ceq(14) = x(22) - (1/1000)*0.3150; % CH = (1/1000)*0.315
     ceq(15) = x(23) - 2e-3; % V1N = 2e-3
     ceq(16) = x(24) - 6.573/100; % ar = 6.573/100
-
+    ceq(17) = x(13) - 18.2; % Tm = 18.2
+    ceq(18) = x(7) - (x(6) - 2*.035); %a1 = b1 - 2*t
 
 end
 
@@ -147,10 +145,10 @@ function Eff = findEfficiency(x)
 
         F = @(P)((pi / 4)*(x(5)*( ( (2*  x(7)) + ...
         ( ( (P - x(4))*  x(7)*(1 - x(9)^2) ) / x(8)) ...
-            *( ( ( x(6)^2 +   x(7)^2) / ( x(6)^2 -   x(7)^2) ) +...
+            *( ( ( x(6)^2 +  x(7)^2) / ( x(6)^2 -   x(7)^2) ) +...
         (x(9) / (1 - x(9)) ) ))*...
             ( ( (P - x(4))*  x(7)*(1 - x(9)^2) ) / x(8)) ...
-            *( ( ( x(6)^2 +   x(7)^2) / ( x(6)^2 -   x(7)^2) ) + ...
+            *( ( ( x(6)^2 +  x(7)^2) / ( x(6)^2 -   x(7)^2) ) + ...
         (x(9) / (1 - x(9)) ) )) ))... % delta_V1
         - ...
         (( x(12)*((1.3e-03 - (2.66e-04*log10( 1 + ( (P - x(4)) / 102.12) ) )) - v1P) ) + ...
