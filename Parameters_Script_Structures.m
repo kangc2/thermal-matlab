@@ -24,8 +24,10 @@ engine.Ey = 105e03; % Young's Modulus [MPa]
 engine.v = 0.33; % Poisson's ratio
 
 % -> Material Properties of PCM
-engine.rhoS = 864; % Density of PCM - Solid phase [kg/m3]
+engine.delta_rho = 70;
 engine.rhoL = 773; % Density of PCM - Liquid phase [kg/m3]
+% engine.rhoS = 864; % Density of PCM - Solid phase [kg/m3] 
+engine.rhoS = engine.rhoL + engine.delta_rho; %TTTTHIIISSSSSSSSS
 engine.f = 0.6557; %Volume fraction of PCM
 %engine.mPCM = 3.456; % Mass of PCM [kg]
 engine.mPCM = (engine.f*pi*engine.L1*( (engine.a1 / 2)^2 ))/(1/engine.rhoS);
@@ -92,9 +94,11 @@ input_range.L1 = [0.5, 1.3, engine.L1];
 input_range.b1 = [0.08, 0.1, engine.b1];
 input_range.Lh = [0.49, 0.69, engine.Lh];
 input_range.Tm = [18, 37, engine.Tm];
-input_range.rhoS = [700, 1000, engine.rhoS];
+%input_range.rhoS = [700, 1000, engine.rhoS]; THISSSSSS
 input_range.rhoL = [600, 900, engine.rhoL];
-input_range.mPCM = [3, 5, engine.mPCM];
+% input_range.mPCM = [3, 5, engine.mPCM]; THISSSSSSSSSSSS
+%input_range.f = [?,?, engine.f]; THISSSSSSSSSSSSSSSSSS
+input_range.delta_rho = [65, 140, engine.delta_rho]; %TTTTTTHHHHHHHHIIIIIISSSSSSSSS
 
 
 fields = string(fieldnames(input_range));
@@ -118,9 +122,11 @@ for j = 1:length(fields) % For each parameter we want to change
     for i= 0:delta
        % Find what the value is for the changing variable
         z = ((u - l) / delta) * i;
+        original.(fields(j)) = z + l; % Changed value for a variable %%THHHIIIISSSSSSS
         original.a1 = engine.b1 - 2*engine.t %Updating thickness/interior diam.
         original.mPCM = (original.f*pi*original.L1*( (original.a1 / 2)^2 ))/(1/original.rhoS)
-        original.(fields(j)) = z + l; % Changed value for a variable
+        origina.rhoS = original.rhoL + original.delta_rho %TTTHIIIIISSSSSSSS
+       
         
         % Find Efficiency value
         % each changed value is represented by p(#) instead of engine.parameter
