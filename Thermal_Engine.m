@@ -81,7 +81,8 @@ Pa = (P2 / V1N)*(delta_V1 + V1N - V1A*( (Po / P2) - 1) ...
 Qin = mPCM*csd*(Tm - Tlow) + mPCM*Lh + mPCM*cld*(Thigh - Tm)
 Est = -Pa*1e6*V1N*log(1 - (mPCM / V1N)*((1 / rhoL) - (1 / rhoS)) )
 Eff = Est / (Qin*1e3) * 100;
-
+%7. Finding Energy Output [W] (kJ)
+W = Eff*Qin*mPCM; 
 
 %% Outputs
 V
