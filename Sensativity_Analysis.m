@@ -252,7 +252,7 @@ function W = NeededWork(engine)
     % W = Needed work to get to @ desired depth 
       % P = Highest Pressure @ needed depth 
     % V = change of volume of HF in accumulator? (248mL? in typical argo float)
-    engine.Pa*
+    
 end
 
 

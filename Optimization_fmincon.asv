@@ -59,6 +59,7 @@ engine.ar = 6.573 / 100; % Volume fraction of residual air
 engine.f = f;
 engine.t = t;
 engine.delta_rho = delta_rho;
+engine.yield_stress = 340; % Yield stress of hull [MPa]
 engine % prints out the engine structure
 
 %% Optimization: 
@@ -115,18 +116,11 @@ x0(6) = .12; % b1
 x(16) = 240; %Lh
 x(25) = 0.42; %f
 x(10) = 720; %rhoL
-% x(27) = 0.01; %t
 
-=======
-x0(12) = 3;
-x0(5) = .8;
-x0(6) = .12;
-x(16) = 240;
-   x(11) = 800;
->>>>>>> Stashed changes
 xopt = fmincon(@objective, x0, [], [], [], [], [], [], @constraint, []);
 %%
 effOpt = findEfficiency(xopt) % 2.1449%
+
 % writematrix(xopt, 'someexcelfile.xlsx')
 
 % Results: xopt
@@ -145,7 +139,6 @@ end
 %ceq(x) = 0
 function [c, ceq] = constraint(x)
     c(1) = x(5) - 1.3; % L1 < 1.3
-<<<<<<< Updated upstream
     c(2) = 0.5 - x(5); % L1 > 0.5
     c(3) = x(6) - 0.15; % b1 < 0.15
     c(4) = 0.09 - x(6); % b1 > 0.08 
@@ -155,19 +148,7 @@ function [c, ceq] = constraint(x)
     c(8) = 720 - x(10); % rhoL > 720
     c(9) = x(25) - 0.75; % f < 0.75
     c(10) = 0.25 - x(25); % f > 0.25
-    
-=======
-    c(2) = 0.2 - x(5); % L1 > 0.3
-    c(3) = x(6) - 0.20; % b1 < 0.20
-    c(4) = 0.08 - x(6); % b1 > 0.08 
->>>>>>> Stashed changes
 
-    c(5) = x(16) - 260; % Lh < 270
-    c(6) = 200 - x(16); % Lh < 210
-    
-    c(7) =  x(10) - 800; % rhoL < 800
-    c(8) = 700 -  x(10); % rhoL > 700
-% 10
     ceq(1) = x(1) - 29; % T = 29
     ceq(2) = x(2) - 29; % Thigh = 29
     ceq(3) = x(3) - 5; % Tlow = 5
@@ -185,7 +166,6 @@ function [c, ceq] = constraint(x)
     ceq(15) = x(23) - 2e-3; % V1N = 2e-3
     ceq(16) = x(24) - 6.573/100; % ar = 6.573/100
     ceq(17) = x(13) - 18.2; % Tm = 18.2
-<<<<<<< Updated upstream
     ceq(18) = x(7) - (x(6) - 2*.01); %a1 = b1 - 2*t
     ceq(19) = x(11) - (x(10) + 70); % rhoS = rhoL + delta_rho
     ceq(20) = x(12) - (x(25)*pi*x(5)*( (x(7) / 2)^2 ))/(1/x(11)); % mPCM = (f*pi*engine.L1*( (engine.a1 / 2)^2 ))/(1/engine.rhoS)
@@ -231,13 +211,7 @@ function [c, ceq] = constraint(x)
     % von Mises Stress [MPa]
      stress_vm = sqrt(((stress_tan - stress_rad)^2 + (stress_rad - stress_long)^2 ...
     + (stress_long - stress_tan)^2) / 2);
-    c(11) = stress_vm - 340; % yield stress von mises < 340 MPa
-    
-=======
-    ceq(18) = x(7) - (x(6) - 2*.035); %a1 = b1 - 2*t
-    ceq(19) = x(12) - (.6557*pi*x(5)*( (x(7) / 2)^2 ))/(1/   x(11)); 
-    % mPCM = (f*pi*engine.L1*( (engine.a1 / 2)^2 ))/(1/engine.rhoS);
->>>>>>> Stashed changes
+    c(11) = (stress_vm - 340); % yield stress von mises < 340 MPa
 
 end
 
@@ -246,12 +220,8 @@ function Eff = findEfficiency(x)
     % 1. Finding Specific Volume of PCM [vP]
     voP = ( (1.0307e03 - ( 1.2596*(x(1) + 273.15) )  + ...
         (1.8186e-3* (x(1) + 273.15)^2) -(1.9555e-6* (x(1) + 273.15)^3) ) )^-1;
-<<<<<<< Updated upstream
     v1P = 1 /   x(11); % Specific volume of PCM in liquid state
-=======
-    v1P = 1 /    x(11); % Specific volume of PCM in liquid state
->>>>>>> Stashed changes
-    VPCM = x(12)*v1P;
+%     VPCM = x(12)*v1P;
 
 
     % 3. Finding Volume Of Cylinder
@@ -259,7 +229,7 @@ function Eff = findEfficiency(x)
     
     V1A = x(24)*V; % Volume of residual air
 %     x(25) = VPCM / V;
-    VH1 = ( V*(1 - x(25)) ) - V1A; % volume of hydraluic fluid
+%     VH1 = ( V*(1 - x(25)) ) - V1A; % volume of hydraluic fluid
     mH = ( (V*(1 - x(25)) ) - V1A) / x(18);
 
     F = @(P)((pi / 4)*(x(5)*( ( (2*  x(7)) + ...
@@ -291,11 +261,7 @@ function Eff = findEfficiency(x)
        *x(22)*log10(1 + ((P2 - x(4)) / x(21)) ));
     
     Qin = x(12)*x(14)*(x(13) - x(3)) + x(12)*x(16) + x(12)*x(15)*(x(2) - x(13));
-<<<<<<< Updated upstream
     Est = -Pa*1e6*x(23)*log(1 - (x(12) / x(23))*((1 /  x(10)) - (1 /   x(11))) );
-=======
-    Est = -Pa*1e6*x(23)*log(1 - (x(12) / x(23))*((1 /  x(10)) - (1 /    x(11))) );
->>>>>>> Stashed changes
     Eff = Est / (Qin*1e3) * 100;
 
 

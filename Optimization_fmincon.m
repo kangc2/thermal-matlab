@@ -59,6 +59,7 @@ engine.ar = 6.573 / 100; % Volume fraction of residual air
 engine.f = f;
 engine.t = t;
 engine.delta_rho = delta_rho;
+engine.yield_stress = 340; % Yield stress of hull [MPa]
 engine % prints out the engine structure
 
 %% Optimization: 
@@ -102,6 +103,7 @@ end
 % x(25) = f
 % x(26) = t
 % x(27) = delta_rho
+% x(28) = yield stress
 %%
 % Step 2: Run in findEfficiency3
 Eff = findEfficiency(inputs)
@@ -115,11 +117,11 @@ x0(6) = .12; % b1
 x(16) = 240; %Lh
 x(25) = 0.42; %f
 x(10) = 720; %rhoL
-% x(27) = 0.01; %t
 
 xopt = fmincon(@objective, x0, [], [], [], [], [], [], @constraint, []);
 %%
 effOpt = findEfficiency(xopt) % 2.1449%
+
 % writematrix(xopt, 'someexcelfile.xlsx')
 
 % Results: xopt
@@ -210,7 +212,7 @@ function [c, ceq] = constraint(x)
     % von Mises Stress [MPa]
      stress_vm = sqrt(((stress_tan - stress_rad)^2 + (stress_rad - stress_long)^2 ...
     + (stress_long - stress_tan)^2) / 2);
-    c(11) = stress_vm - 340; % yield stress von mises < 340 MPa
+    c(11) = (stress_vm)/1.5 - x(28); % yield stress von mises / factor of safety < yield stress of hull
 
 end
 
