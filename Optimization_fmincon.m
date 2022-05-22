@@ -114,14 +114,15 @@ x0 = inputs;
 
 x0(5) = .8; %L1
 x0(6) = .12; % b1
-x(16) = 240; %Lh
-x(25) = 0.42; %f
-x(10) = 720; %rhoL
+x0(16) = 240; %Lh
+x0(25) = 0.42; %f
+x0(10) = 773; %rhoL
 
-xopt = fmincon(@objective, x0, [], [], [], [], [], [], @constraint, []);
+[xopt, fval, exitflag, output] = fmincon(@objective, x0, [], [], [], [], [], [], @constraint, []);
 %%
 effOpt = findEfficiency(xopt) % 2.1449%
-
+% [c, ceq] = constraint(xopt);
+[c, ceq] = constraint(x0)
 % writematrix(xopt, 'someexcelfile.xlsx')
 
 % Results: xopt
@@ -167,8 +168,8 @@ function [c, ceq] = constraint(x)
     ceq(15) = x(23) - 2e-3; % V1N = 2e-3
     ceq(16) = x(24) - 6.573/100; % ar = 6.573/100
     ceq(17) = x(13) - 18.2; % Tm = 18.2
-    ceq(18) = x(7) - (x(6) - 2*.01); %a1 = b1 - 2*t
-    ceq(19) = x(11) - (x(10) + 70); % rhoS = rhoL + delta_rho
+    ceq(18) = x(7) - (x(6) - 2*x(26)); %a1 = b1 - 2*t
+    ceq(19) = x(11) - (x(10) + x(27)); % rhoS = rhoL + delta_rho
     ceq(20) = x(12) - (x(25)*pi*x(5)*( (x(7) / 2)^2 ))/(1/x(11)); % mPCM = (f*pi*engine.L1*( (engine.a1 / 2)^2 ))/(1/engine.rhoS)
     % Yield Stress
     v1P = 1 /   x(11); % Specific volume of PCM in liquid state
@@ -195,7 +196,7 @@ function [c, ceq] = constraint(x)
 
     % Options: sets tolerance of function close to 0 (1-e14) and displays the
     % iteration, this could help with the optimization
-    options = optimoptions('fsolve','Display','iter','TolFun',1e-14);
+    options = optimoptions('fsolve','TolFun',1e-14);
     
     %solves for P, same answer as the engine.P2 with the current finding
     %Pressure function
@@ -247,7 +248,7 @@ function Eff = findEfficiency(x)
 
     % Options: sets tolerance of function close to 0 (1-e14) and displays the
     % iteration, this could help with the optimization
-    options = optimoptions('fsolve','Display','iter','TolFun',1e-14);
+    options = optimoptions('fsolve','TolFun',1e-14);
     
     %solves for P, same answer as the engine.P2 with the current finding
     %Pressure function
