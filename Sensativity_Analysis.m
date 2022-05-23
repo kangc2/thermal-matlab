@@ -52,7 +52,8 @@ engine.CH = 0.3150*engine.voH;
 % -> Accumulator Parameters
 engine.V1N = 2e-03; % Initial Volume of N2 gas
 engine.ar = 6.573 / 100; % Volume fraction of residual air
-
+% mL -> m^3 = 1e-6
+engine.desiredWork = 6.096*248*1e-3; %Work needed in float = P*delta_V [MPa*m^3*1e3 = kJ]
 %% Define Outputs in 'engine' structure using Functions
 % 1 Find specific volume of PCM under ambient pressure Po, volume and mass of PCM [voP]
 [engine.voP, engine.v1P, engine.VPCM] = specificVolPCM(T, engine.rhoS, engine.mPCM);
@@ -75,6 +76,7 @@ engine.Qin = findQin(Tlow, Thigh, engine.Tm, engine.mPCM, engine.csd, engine.Lh,
 % 6d. find the theorectical Efficiency % 
 engine.Eff = findEfficiency(engine.Est, engine.Qin);  
 
+engine.Work = engine.Est / 1000; % Est from [J] to [kJ]
 
 %% Find Efficiency: get efficiency using all of our inputs
 % adds a new structure field Eff2, same as Eff, but using function that
@@ -194,7 +196,7 @@ function delta_V1 = findChangeInnerVolume(Po, a1, b1, L1, v, Ey, P2)
 end
 
 % 6. Finding Efficiency [Eff] 
-% a. Find Pre-charged pressure in acculimlator [Pa]
+% a. Find Pre-charged pressure in acculimlator [MPa]
 function Pa = findPa(Po, P2, V1N, delta_V1, V1A, V, v1P, voP, CP, BP, CH, BH, v1H, f)
   Pa = (P2 / V1N)*(delta_V1 + V1N - V1A*( (Po / P2) - 1) ...
        - (V*f / v1P)*(voP - CP*log10(1 + ((P2 - Po) / BP) ) - v1P) + ...
@@ -250,7 +252,7 @@ end
 % W = P*V
 function W = NeededWork(engine)
     % W = Needed work to get to @ desired depth 
-      % P = Highest Pressure @ needed depth 
+    % P = Highest Pressure @ needed depth 
     % V = change of volume of HF in accumulator? (248mL? in typical argo float)
     
 end

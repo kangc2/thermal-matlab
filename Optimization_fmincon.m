@@ -18,22 +18,16 @@ engine.hull_material = "TA2M (Titanium alloy)";
 % -> Geometry Properties of Cylinder
 engine.L1 = 1.3; % Length of the cylinder [m]
 engine.b1 = 0.15; % External diameter of the cylinder [m]
-t = 0.01; % wall thickness [m]
-engine.a1 = engine.b1 - 2*t; % Internal diameter of the cylinder [m]
+engine.t = 0.01; % wall thickness [m] CHANGED FROM a1
 
 % -> Hull Material Properties
 engine.Ey = 105e03; % Young's Modulus [MPa]
 engine.v = 0.33; % Poisson's ratio
 
 % -> Material Properties of PCM
-delta_rho = 70;
 engine.rhoL = 773; % Density of PCM - Liquid phase [kg/m3]
-engine.rhoS = engine.rhoL + delta_rho; %TTTTHIIISSSSSSSSS
-
-f = 0.6557; %Volume fraction of PCM, FOR SIMPLICITY- f  IS INPUT 25
-engine.mPCM = (f*pi*engine.L1*( (engine.a1 / 2)^2 ))/(1/engine.rhoS);
-f = 0.6557; %Volume fraction of PCM
-engine.mPCM = (f*pi*engine.L1*( (engine.a1 / 2)^2 ))/(1/engine.rhoS); % Mass of PCM [kg]
+engine.delta_rho = 70; % CHANGED FROM rhoS
+engine.f = 0.6557; %Volume fraction of PCM, CHANGED FROM mPCM
 engine.Tm = 18.2; % Melting Temperature of PCM [degC]
 
 % -> Heat Transfer Properties
@@ -56,15 +50,11 @@ engine.V1N = 2e-03; % Initial Volume of N2 gas
 engine.ar = 6.573 / 100; % Volume fraction of residual air
 
 % Added variables to not mess up function for optimizer
-engine.f = f;
-engine.t = t;
-engine.delta_rho = delta_rho;
 engine.yield_stress = 340; % Yield stress of hull [MPa]
 engine % prints out the engine structure
 
 %% Optimization: 
 % Step 1: Put all of the engine and environmental inputs into one array
-
 inputs = [T Thigh Tlow Po];
 fields = string(fieldnames(engine));
 
@@ -82,12 +72,12 @@ end
 % x(4) = Po
 % x(5) = L1
 % x(6) = b1
-% x(7) = a1
+% x(7) = a1 NOW: x(7) = t
 % x(8) = Ey
 % x(9) = v
 % x(10) = rhoL
-% x(11) = rhoS
-% x(12) = mPCM
+% x(11) = rhoS NOW: x(11) = delta_rho
+% x(12) = mPCM NOW: x(12) = f
 % x(13) = Tm
 % x(14) = csd
 % x(15) = cld
@@ -100,10 +90,8 @@ end
 % x(22) = CH
 % x(23) = V1N
 % x(24) = ar
-% x(25) = f
-% x(26) = t
-% x(27) = delta_rho
-% x(28) = yield stress
+
+% x(25) = yield stress
 %%
 % Step 2: Run in findEfficiency3
 Eff = findEfficiency(inputs)
@@ -112,23 +100,25 @@ Eff = findEfficiency(inputs)
 % Step 3: Run in fmincon
 x0 = inputs;
 
-x0(5) = .8; %L1
-x0(6) = .12; % b1
-x0(16) = 240; %Lh
-x0(25) = 0.42; %f
-x0(10) = 773; %rhoL
+x0(5) = .9; %L1
+x0(6) = .1; % b1
+x0(16) = 250; %Lh
+x0(25) = 0.75; %f
+x0(10) = 780; %rhoL
 
-[xopt, fval, exitflag, output] = fmincon(@objective, x0, [], [], [], [], [], [], @constraint, []);
+% options = optimoptions('fmincon', 'MaxFunctionEvaluations', 50000, 'MaxIterations', 3000)
 %%
-effOpt = findEfficiency(xopt) % 2.1449%
-% [c, ceq] = constraint(xopt);
+[xopt, fval, exitflag, output] = fmincon(@objective, x0, [], [], [], [], [], [], @constraint, [])
+%%
 [c, ceq] = constraint(x0)
-% writematrix(xopt, 'someexcelfile.xlsx')
+effOpt = findEfficiency(xopt)
+[c1, ceq1] = constraint(xopt)
+
+%%
+writematrix(xopt, 'someexcelfile.xlsx')
 
 % Results: xopt
-%Large as possible: L1=1.3,  b1=.15, rhoL = 800
-%  f=0.75 (not as high as possible, but higher end)
-% small as possible: Lh =210
+
 %% Functions: Optimization
 
 % Define objective function for optimization
@@ -143,13 +133,19 @@ function [c, ceq] = constraint(x)
     c(1) = x(5) - 1.3; % L1 < 1.3
     c(2) = 0.5 - x(5); % L1 > 0.5
     c(3) = x(6) - 0.15; % b1 < 0.15
-    c(4) = 0.09 - x(6); % b1 > 0.08 
+    c(4) = 0.1 - x(6); % b1 > 0.1
     c(5) = x(16) - 270; % Lh < 270
     c(6) = 210 - x(16); % Lh < 210
     c(7) = x(10) - 800; % rhoL < 800
     c(8) = 720 - x(10); % rhoL > 720
-    c(9) = x(25) - 0.75; % f < 0.75
-    c(10) = 0.25 - x(25); % f > 0.25
+    c(9) = x(12) - 0.75; % f < 0.75
+    c(10) = 0.25 - x(12); % f > 0.25
+    c(12) =  1.5 - x(14); % csd > 1.5
+    c(13) = x(14) - 1.9;
+    c(14) = 2 - x(15); % cld > 2
+    c(15) = x(15) - 2.4;
+    c(16) = 5.5 - x(13); %Tm > 5.5
+    c(17) = x(13) - 20; %Tm > 5.5
 
     ceq(1) = x(1) - 29; % T = 29
     ceq(2) = x(2) - 29; % Thigh = 29
@@ -157,92 +153,51 @@ function [c, ceq] = constraint(x)
     ceq(4) = x(4) - 0.101; % Po = 0.101
     ceq(5) = x(8) - 105e3; % Ey = 105e3
     ceq(6) = x(9) - 0.33; % v = 0.33
-    ceq(7) = x(14) - 1.64; % csd = 7.7e2 
-    ceq(8) = x(15) - 2.09; % cld = 7.7e2
+    ceq(7) = x(11) - 70; %delta_rho
+    ceq(8) = x(7) - 0.01; %t
     ceq(9) = x(17) - 1/1000; % voH = 1/1000
     ceq(10) = x(18) - 1/1000; % v1H = 1/1000
     ceq(11) = x(19) - 2.66e-4; % CP = 2.66e-4
     ceq(12) = x(20) - 102.12; % BP = 102.12
     ceq(13) = x(21) - 2.996424e2; % BH  = 2.99e2
-    ceq(14) = x(22) - (1/1000)*0.3150; % CH = (1/1000)*0.315
+    ceq(14) = x(22) - 0.000315; % CH = (1/1000)*0.315
     ceq(15) = x(23) - 2e-3; % V1N = 2e-3
     ceq(16) = x(24) - 6.573/100; % ar = 6.573/100
-    ceq(17) = x(13) - 18.2; % Tm = 18.2
-    ceq(18) = x(7) - (x(6) - 2*x(26)); %a1 = b1 - 2*t
-    ceq(19) = x(11) - (x(10) + x(27)); % rhoS = rhoL + delta_rho
-    ceq(20) = x(12) - (x(25)*pi*x(5)*( (x(7) / 2)^2 ))/(1/x(11)); % mPCM = (f*pi*engine.L1*( (engine.a1 / 2)^2 ))/(1/engine.rhoS)
-    % Yield Stress
-    v1P = 1 /   x(11); % Specific volume of PCM in liquid state
-%     VPCM = x(12)*v1P;
-
-
-    % 3. Finding Volume Of Cylinder
-    V = pi*x(5)*( (  x(7) / 2)^2 ); % Inner volume of Cylinder
-    
-    V1A = x(24)*V; % Volume of residual air
-%     x(25) = VPCM / V;
-    mH = ( (V*(1 - x(25)) ) - V1A) / x(18);
-    F = @(P)((pi / 4)*(x(5)*( ( (2*  x(7)) + ...
-        ( ( (P - x(4))*  x(7)*(1 - x(9)^2) ) / x(8)) ...
-            *( ( ( x(6)^2 +  x(7)^2) / ( x(6)^2 -   x(7)^2) ) +...
-        (x(9) / (1 - x(9)) ) ))*...
-            ( ( (P - x(4))*  x(7)*(1 - x(9)^2) ) / x(8)) ...
-            *( ( ( x(6)^2 +  x(7)^2) / ( x(6)^2 -   x(7)^2) ) + ...
-        (x(9) / (1 - x(9)) ) )) ))... % delta_V1
-        - ...
-        (( x(12)*((1.3e-03 - (2.66e-04*log10( 1 + ( (P - x(4)) / 102.12) ) )) - v1P) ) + ...
-        ( mH*((x(17) - (x(22)*log10(1 + ( (P - x(4)) / x(21)) ) )) - x(17)) ) ...
-        + (((V1A*x(4)) / P) - V1A)); %delta_V2
-
-    % Options: sets tolerance of function close to 0 (1-e14) and displays the
-    % iteration, this could help with the optimization
-    options = optimoptions('fsolve','TolFun',1e-14);
-    
-    %solves for P, same answer as the engine.P2 with the current finding
-    %Pressure function
-    P2 = fsolve(F,5,options);
-    % sigma_tan is the tangential (axial) stress [MPa]
-    stress_tan = P2*(((  x(6)/2)^2 + ( x(7)/2)^2) / ((  x(6)/2)^2 - ( x(7)/2)^2));
-    
-    %sigma_rad is the radial stress [MPa]
-    stress_rad = -P2;
-    
-    %sigma_long is the longitudinal (hoop) stress on the ends [MPa]
-    stress_long = (P2*( x(7)/2)^2)/((  x(6)/2)^2 - ( x(7)/2)^2);
-
-    % von Mises Stress [MPa]
-     stress_vm = sqrt(((stress_tan - stress_rad)^2 + (stress_rad - stress_long)^2 ...
-    + (stress_long - stress_tan)^2) / 2);
-    c(11) = (stress_vm)/1.5 - x(28); % yield stress von mises / factor of safety < yield stress of hull
-
 end
+
+
 
 % OPTIMIZER FUNCTION FOR EFFICIENCY
 function Eff = findEfficiency(x)  
+    % 0. define dependant variables
+   a1 = x(6) - 2*x(7); %a1 = b1 - 2*t
+   rhoS = x(10) + x(11); % rhoS = rhoL + delta_rho
+   mPCM = (x(12)*pi*x(5)*( (a1 / 2)^2 ))/(1/rhoS); % mPCM = (f*pi*engine.L1*( (engine.a1 / 2)^2 ))/(1/engine.rhoS)
+
     % 1. Finding Specific Volume of PCM [vP]
     voP = ( (1.0307e03 - ( 1.2596*(x(1) + 273.15) )  + ...
         (1.8186e-3* (x(1) + 273.15)^2) -(1.9555e-6* (x(1) + 273.15)^3) ) )^-1;
-    v1P = 1 /   x(11); % Specific volume of PCM in liquid state
-%     VPCM = x(12)*v1P;
+    v1P = 1 /   rhoS; % Specific volume of PCM in liquid state
+%     VPCM = mPCM*v1P;
 
 
     % 3. Finding Volume Of Cylinder
-    V = pi*x(5)*( (  x(7) / 2)^2 ); % Inner volume of Cylinder
+    V = pi*x(5)*( (  a1 / 2)^2 ); % Inner volume of Cylinder
     
     V1A = x(24)*V; % Volume of residual air
-%     x(25) = VPCM / V;
-%     VH1 = ( V*(1 - x(25)) ) - V1A; % volume of hydraluic fluid
-    mH = ( (V*(1 - x(25)) ) - V1A) / x(18);
+%     x(12) = VPCM / V;
+%     VH1 = ( V*(1 - x(12)) ) - V1A; % volume of hydraluic fluid
+    mH = ( (V*(1 - x(12)) ) - V1A) / x(18);
 
-    F = @(P)((pi / 4)*(x(5)*( ( (2*  x(7)) + ...
-        ( ( (P - x(4))*  x(7)*(1 - x(9)^2) ) / x(8)) ...
-            *( ( ( x(6)^2 +  x(7)^2) / ( x(6)^2 -   x(7)^2) ) +...
+    F = @(P)((pi / 4)*(x(5)*( ( (2*  a1) + ...
+        ( ( (P - x(4))*  a1*(1 - x(9)^2) ) / x(8)) ...
+            *( ( ( x(6)^2 +  a1^2) / ( x(6)^2 -   a1^2) ) +...
         (x(9) / (1 - x(9)) ) ))*...
-            ( ( (P - x(4))*  x(7)*(1 - x(9)^2) ) / x(8)) ...
-            *( ( ( x(6)^2 +  x(7)^2) / ( x(6)^2 -   x(7)^2) ) + ...
+            ( ( (P - x(4))*  a1*(1 - x(9)^2) ) / x(8)) ...
+            *( ( ( x(6)^2 +  a1^2) / ( x(6)^2 -   a1^2) ) + ...
         (x(9) / (1 - x(9)) ) )) ))... % delta_V1
         - ...
-        (( x(12)*((1.3e-03 - (2.66e-04*log10( 1 + ( (P - x(4)) / 102.12) ) )) - v1P) ) + ...
+        (( mPCM*((1.3e-03 - (2.66e-04*log10( 1 + ( (P - x(4)) / 102.12) ) )) - v1P) ) + ...
         ( mH*((x(17) - (x(22)*log10(1 + ( (P - x(4)) / x(21)) ) )) - x(17)) ) ...
         + (((V1A*x(4)) / P) - V1A)); %delta_V2
 
@@ -255,15 +210,15 @@ function Eff = findEfficiency(x)
     P2 = fsolve(F,5,options);
     
     % 6. Finding Efficiency [Eff] 
-    delta_a1 = ( ( (P2 - x(4))*  x(7)*(1 - x(9)^2) ) / x(8))*( ( ( x(6)^2 +   x(7)^2) / ( x(6)^2 -   x(7)^2) ) + (x(9) / (1 - x(9)) ) );
-    delta_V1 = (pi / 4)*(x(5)*( ( (2*  x(7)) + delta_a1)*delta_a1) );
+    delta_a1 = ( ( (P2 - x(4))*  a1*(1 - x(9)^2) ) / x(8))*( ( ( x(6)^2 +   a1^2) / ( x(6)^2 -   a1^2) ) + (x(9) / (1 - x(9)) ) );
+    delta_V1 = (pi / 4)*(x(5)*( ( (2*  a1) + delta_a1)*delta_a1) );
     
     Pa = (P2 / x(23))*(delta_V1 + x(23) - V1A*( (x(4) / P2) - 1) ...
-       - (V*x(25) / v1P)*(voP - x(19)*log10(1 + ((P2 - x(4)) / x(20)) ) - v1P) + ((V*(1 - x(25)) - V1A) / x(18)) ...
+       - (V*x(12) / v1P)*(voP - x(19)*log10(1 + ((P2 - x(4)) / x(20)) ) - v1P) + ((V*(1 - x(12)) - V1A) / x(18)) ...
        *x(22)*log10(1 + ((P2 - x(4)) / x(21)) ));
     
-    Qin = x(12)*x(14)*(x(13) - x(3)) + x(12)*x(16) + x(12)*x(15)*(x(2) - x(13));
-    Est = -Pa*1e6*x(23)*log(1 - (x(12) / x(23))*((1 /  x(10)) - (1 /   x(11))) );
+    Qin = mPCM*x(14)*(x(13) - x(3)) + mPCM*x(16) + mPCM*x(15)*(x(2) - x(13));
+    Est = -Pa*1e6*x(23)*log(1 - (mPCM / x(23))*((1 /  x(10)) - (1 /   rhoS)) );
     Eff = Est / (Qin*1e3) * 100;
 
 
