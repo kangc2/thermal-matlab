@@ -50,7 +50,7 @@ engine.V1N = 2e-03; % Initial Volume of N2 gas
 engine.ar = 6.573 / 100; % Volume fraction of residual air
 
 % Added variables to not mess up function for optimizer
-engine.yield_stress = 340; % Yield stress of hull [MPa]
+% engine.yield_stress = 340; % Yield stress of hull [MPa]
 engine % prints out the engine structure
 
 %% Optimization: 
@@ -103,7 +103,7 @@ x0 = inputs;
 x0(5) = .8; %L1
 x0(6) = .09; % b1
 x0(16) = 270; %Lh
-x0(25) = 0.50; %f
+x0(12) = 0.50; %f
 x0(10) = 720; %rhoL
 x0(13) = 17; %Tm
 % options = optimoptions('fmincon', 'MaxFunctionEvaluations', 50000, 'MaxIterations', 3000)
@@ -113,7 +113,7 @@ x0(13) = 17; %Tm
 [c, ceq] = constraint(x0)
 effOpt = findEfficiency(xopt)
 [c1, ceq1] = constraint(xopt)
-
+% exitflag : 1
 % Results: Eff = 2.1767%
 % High as possible: L1 = 1.3, b1 = .15, rhoL = 800, 
 % Inbetween: f = .75, Tm = 20
@@ -126,7 +126,7 @@ x1 = inputs;
 x1(5) = 1; %L1
 x1(6) = .14; % b1
 x1(16) = 270; %Lh
-x1(25) = 0.84; %f
+x1(12) = 0.84; %f
 x1(10) = 720; %rhoL
 x1(13) = 6; %Tm
 % options = optimoptions('fmincon', 'MaxFunctionEvaluations', 50000, 'MaxIterations', 3000)
@@ -136,13 +136,35 @@ x1(13) = 6; %Tm
 [c, ceq] = constraint(x1)
 effOpt = findEfficiency(xopt)
 [c1, ceq1] = constraint(xopt)
+% exitflag - 2
+% Results: Eff = .0077%
+%  L1 = .9291, b1 = .134, rhoL = 735, 
+%  f = .577, Tm = 18.4
+% csd = 1.69, cld = 2.18, Lh = 254, 
 
-% Results: Eff = 2.1767%
+% writematrix( xopt.', 'someexcelfile.xlsx')
+%%
+% Step 3a: Run in fmincon
+x2 = inputs;
+
+x2(5) = .75; %L1
+x2(6) = 0.09; % b1
+x2(16) = 270; %Lh
+x2(12) = 0.25; %f
+x2(10) = 730; %rhoL
+x2(13) = 7; %Tm
+% options = optimoptions('fmincon', 'MaxFunctionEvaluations', 50000, 'MaxIterations', 3000)
+
+[xopt, fval, exitflag, output] = fmincon(@objective, x2, [], [], [], [], [], [], @constraint, [])
+
+[c, ceq] = constraint(x2)
+effOpt = findEfficiency(xopt)
+[c1, ceq1] = constraint(xopt)
+% exitflag: 2
+% Results: Eff = .0086%
 % High as possible: L1 = 1.3, b1 = .15, rhoL = 800, 
 % Inbetween: f = .75, Tm = 20
 % Low as Possible: csd = 1.5, cld = 2, Lh = 210, 
-%%
-% writematrix(xopt, 'someexcelfile.xlsx')
 
 
 %% Functions: Optimization
@@ -189,6 +211,8 @@ function [c, ceq] = constraint(x)
     ceq(14) = x(22) - 0.000315; % CH = (1/1000)*0.315
     ceq(15) = x(23) - 2e-3; % V1N = 2e-3
     ceq(16) = x(24) - 6.573/100; % ar = 6.573/100
+
+    % Stress / Work Needed
 end
 
 

@@ -98,7 +98,6 @@ input_range.b1 = [0.08, 0.2, engine.b1];
 input_range.Lh = [210, 280, engine.Lh];
 input_range.Tm = [5.5, 25, engine.Tm];
 input_range.rhoL = [720, 800, engine.rhoL];
-% input_range.mPCM = [3, 5, engine.mPCM];
 input_range.f = [0, 1, engine.f];
 
 fields = string(fieldnames(input_range));
@@ -250,13 +249,11 @@ end
 
 % Work
 % W = P*V
-function W = NeededWork(engine)
+
     % W = Needed work to get to @ desired depth 
     % P = Highest Pressure @ needed depth 
-    % V = change of volume of HF in accumulator? (248mL? in typical argo float)
+    % V = change of volume of HF in accumulator/bladder? (248mL in typical argo float)
     
-end
-
 
 
 % Energy Equation
