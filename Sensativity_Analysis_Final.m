@@ -1,5 +1,13 @@
 % Sensativity Analysis: Same as Parameters_Script_Structures
 clc; close all; clear
+
+% CHECKLIST
+
+% 1. verify: order is the same in functions called - DONE
+% 2. verify: order of changing variables in sweep r right order, right
+% things r changed in loops
+% 3. validate using known inputs/outputs
+
 %% Define Intial Structure: get all inputs in an 'engine' structure
 % Thermal Engine from our Thermal_Engine code
 % The baseline of our model
@@ -56,61 +64,55 @@ engine.ar = 6.573 / 100; % Volume fraction of residual air
 engine.desiredWork = 6.096*248*1e-3; %Work needed in float = P*delta_V [MPa*m^3*1e3 = kJ]
 %% Define Outputs in 'engine' structure using Functions
 % 1 Find specific volume of PCM under ambient pressure Po, volume and mass of PCM [voP]
-[engine.voP, engine.v1P, engine.VPCM] = specificVolPCM(T, engine.rhoS, engine.mPCM);
+[engine.voP, engine.v1P, engine.VPCM] = specificVolPCM(engine);
 % 3. Find inner volume of cylinder, Volume fraction of air and PCM 
-[engine.V,engine.V1A, engine.V1H, engine.mH] = findVolume(engine.a1, engine.L1, engine.ar, engine.VPCM, engine.v1H, engine.f);
-
+[engine.V,engine.V1A, engine.V1H, engine.mH] = findVolume(engine);
 % 5. Finding Max Pressure [P2]
-engine.P2 = findPressure(Po, engine);
-
+engine.P2 = findPressure(engine);
 % 4. Finding change of Inner Diameter of Tube Under Internal Pressure
-engine.delta_V1 = findChangeInnerVolume(Po, engine.a1, engine.b1, engine.L1, engine.v, engine.Ey, engine.P2);
-
+engine.delta_V1 = findChangeInnerVolume(engine);
 % 6a. Find Pre-charged pressure in acculimlator
-engine.Pa = findPa(Po, engine.P2, engine.V1N, engine.delta_V1, engine.V1A, engine.V, engine.v1P, ...
-    engine.voP, engine.CP, engine.BP, engine.CH, engine.BH, engine.v1H, engine.f);
+engine.Pa = findPa(engine);
 % 6b. find the total energy stored
-engine.Est = findEst(engine.Pa, engine.V1N, engine.mPCM, engine.rhoL, engine.rhoS);
+engine.Est = findEst(engine);
 % 6c. Find total thermal energy absorbed by PCM in 1 melting/freezing cycle
-engine.Qin = findQin(Tlow, Thigh, engine.Tm, engine.mPCM, engine.csd, engine.Lh, engine.cld);
+engine.Qin = findQin(engine);
 % 6d. find the theorectical Efficiency % 
-engine.Eff = findEfficiency(engine.Est, engine.Qin);  
-
+engine.Eff = findEfficiency(engine);  
 engine.Work = engine.Est / 1000; % Est from [J] to [kJ]
 
 %% Find Efficiency: get efficiency using all of our inputs
 % adds a new structure field Eff2, same as Eff, but using function that
 % takes in all the inputs at once
 
-engine.Eff2 = findEfficiency2(T, Tlow, Thigh, Po, engine);
-stress = PtoStress(engine)
-
-engine % prints out the engine structure
+engine.Eff2 = findEfficiency2(engine);
+stress = PtoStress(engine);
+engine
 
 %% Loops thru every parameter and returns a structured data for each parameter
 %create a new structure 'parameter' to add in all our of tests into structures
 
 % Parameters to change: a new structure called input_range
 % includes all the parameters we want to test via structures
-% Field name, lowerbound, upperbound, delta, original value
-input_range.L1 = [0.2, 1.3, engine.L1];
-input_range.b1 = [0.08, 0.2, engine.b1];
-input_range.Lh = [210, 280, engine.Lh];
-input_range.Tm = [5.5, 25, engine.Tm];
-input_range.rhoL = [720, 800, engine.rhoL];
-input_range.f = [0, 1, engine.f];
+% Field name, lowerbound, upperbound, original value, step size (delta)
+input_range.L1 = [0.2, 1.3, engine.L1, 21];
+input_range.b1 = [0.17, 0.2, engine.b1, 21];
+input_range.Lh = [210, 280, engine.Lh, 21];
+input_range.Tm = [5.5, 25, engine.Tm, 21];
+input_range.rhoL = [720, 800, engine.rhoL, 21];
+input_range.f = [0, 1, engine.f, 21];
 
 fields = string(fieldnames(input_range));
 
-delta = 21; % number of steps between upper and lower bounds, 
+% delta = 21; % number of steps between upper and lower bounds, 
 % ^^NOTE: we can put this into the structure field list, so we can have different values of delta for each parameter
-
+original = engine; % to reconvert the engine back to its original values when the second for loop finishes
 % For loop that goes thru every variable we want to change
 for j = 1:length(fields) % For each parameter we want to change
     input = input_range.(fields(j)); % get the information from each field in the structure
     l = input(1); % lower bound value
     u = input(2); % upper bound value
-    
+    delta = input(4);
     j % check at which variable is passing thru
 
     newParam = []; % this is all the changed values for each variable goes
@@ -119,17 +121,16 @@ for j = 1:length(fields) % For each parameter we want to change
     for i= 0:delta
        % Find what the value is for the changing variable
         z = ((u - l) / delta) * i;
-        original = engine; % to reconvert the engine back to its original values when the second for loop finishes
         
-        original.(fields(j)) = z + l; % Changed value for a variable %%THHHIIIISSSSSSS
+        original.(fields(j)) = z + l; % Changed value for a variable
         
         original.a1 = original.b1 - 2*original.t; %Updating thickness/interior diam.
-        original.rhoS = original.rhoL + original.delta_rho; %TTTHIIIIISSSSSSSS
+        original.rhoS = original.rhoL + original.delta_rho;
         original.mPCM = (original.f*pi*original.L1*( (original.a1 / 2)^2 ))/(1/original.rhoS);
       
         % Find Efficiency value
         % each changed value is represented by p(#) instead of engine.parameter
-        answer = findEfficiency2(T, Tlow, Thigh, Po, original);
+        answer = findEfficiency2(original);
         % add all changed values into a row
         newParam = [newParam, original.(fields(j))];
         % add all the efficiency values into one row
@@ -142,50 +143,54 @@ for j = 1:length(fields) % For each parameter we want to change
    parameter(j).name = fields(j);
    parameter(j).param = newParam;
    parameter(j).efficiencies = newEff;
+   
+   original = engine; % to reconvert the engine back to its original values when the second for loop finishes
 
-   original.(fields(j)) = input(3); % reverts the value back to its original value
+%    original.(fields(j)) = input(3); % reverts the value back to its original value
 end
 %%
-plot(parameter(2).param, parameter(2).efficiencies)
-
-% 1. verify: order is the same in functions called
-% 2. verify: order of changing variables in sweep r right order, right
-% things r changed in loops
-% 3. validate using known inputs/outputs
+for i = 1:length(parameter)
+    figure
+    plot(parameter(i).param, parameter(i).efficiencies)
+    xlabel(parameter(i).name)
+    ylabel('Efficiency [%]')
+end
 %% Functions
 % 1. Finding Specific Volume of PCM [vP]
-function [voP, v1P, VPCM] = specificVolPCM(T,rhoS, mPCM)
+function [voP, v1P, VPCM] = specificVolPCM(engine)
     % a. Find specific volume of PCM under ambient pressure Po [voP]
     voP = ( (1.0307e03 - ( 1.2596*(engine.T + 273.15) )  + ...
         (1.8186e-3* (engine.T + 273.15)^2) -(1.9555e-6* (engine.T + 273.15)^3) ) )^-1;
     % b. Find the volume of PCM (liquid state) [v1P]
     v1P = 1/engine.rhoS; % Specific volume of PCM in liquid state
-    VPCM = engine.mPCM*engine.v1P;
+    VPCM = engine.mPCM*v1P;
 end
 
 % 3. Find inner volume of cylinder, Volume fraction of air and PCM 
-function [V, V1A, V1H, mH] = findVolume(a1, L1, ar, VPCM, v1H, f)
-    V = pi*L1*( (a1 / 2)^2 ); % Inner volume of Cylinder
-    V1A = ar*V; % Volume of residual air
+function [V, V1A, V1H, mH] = findVolume(engine)
+%     V = pi*engine.L1*( (engine.b1 / 2)^2 - (engine.a1 / 2)^2 ); % Inner volume of Cylinder
+    V = pi*engine.L1*( (engine.a1 / 2)^2 ); % Inner volume of Cylinder
+
+    V1A = engine.ar*V; % Volume of residual air
 %     f = VPCM / V; % volume fraction of PCM DONT NEED THIS ANYMORE?
-    V1H = ( V*(1 - f) ) - V1A; % volume of HF at state 1
-    mH = ( (V*(1 - f) ) - V1A) / v1H; % mass of HF
+    V1H = ( V*(1 - engine.f) ) - V1A; % volume of HF at state 1
+    mH = ( (V*(1 - engine.f) ) - V1A) / engine.v1H; % mass of HF
 end
 
 % 5. Finding Max Pressure [P2]
-function P2 = findPressure(Po, engine)
+function P2 = findPressure(engine)
     F = @(P)((pi / 4)*(engine.L1*( ( (2*engine.a1) + ...
-            ( ( (P - Po)*engine.a1*(1 - engine.v^2) ) / engine.Ey)*( ( (engine.b1^2 + engine.a1^2) / (engine.b1^2 - engine.a1^2) ) +...
+            ( ( (P - engine.Po)*engine.a1*(1 - engine.v^2) ) / engine.Ey)*( ( (engine.b1^2 + engine.a1^2) / (engine.b1^2 - engine.a1^2) ) +...
         (engine.v / (1 - engine.v) ) ))*...
-            ( ( (P - Po)*engine.a1*(1 - engine.v^2) ) / engine.Ey)*( ( (engine.b1^2 + engine.a1^2) / (engine.b1^2 - engine.a1^2) ) + ...
+            ( ( (P - engine.Po)*engine.a1*(1 - engine.v^2) ) / engine.Ey)*( ( (engine.b1^2 + engine.a1^2) / (engine.b1^2 - engine.a1^2) ) + ...
         (engine.v / (1 - engine.v) ) )) ))... % delta_V1
     - ...
-    (( engine.mPCM*((1.3e-03 - (2.66e-04*log10( 1 + ( (P - Po) / 102.12) ) )) - engine.v1P) ) + ...
-    ( engine.mH*((engine.voH - (engine.CH*log10(1 + ( (P - Po) / engine.BH) ) )) - engine.voH) ) + (((engine.V1A*Po) / P) - engine.V1A)); %delta_V2
+    (( engine.mPCM*((1.3e-03 - (2.66e-04*log10( 1 + ( (P - engine.Po) / 102.12) ) )) - engine.v1P) ) + ...
+    ( engine.mH*((engine.voH - (engine.CH*log10(1 + ( (P - engine.Po) / engine.BH) ) )) - engine.voH) ) + (((engine.V1A*engine.Po) / P) - engine.V1A)); %delta_V2
 
     % Options: sets tolerance of function close to 0 (1-e14) and displays the
     % iteration, this could help with the optimization
-    options = optimoptions('fsolve','Display','iter','TolFun',1e-14);
+    options = optimoptions('fsolve','TolFun',1e-14);
     
     %solves for P, same answer as the engine.P2 with the current finding
     %Pressure function
@@ -194,47 +199,47 @@ function P2 = findPressure(Po, engine)
 end
 
 % 4. Finding change of Inner Diameter of Tube Under Internal Pressure
-function delta_V1 = findChangeInnerVolume(Po, a1, b1, L1, v, Ey, P2)
-    delta_a1 = ( ( (P2 - Po)*a1*(1 - v^2) ) / Ey)*( ( (b1^2 + a1^2) / ...
-        (b1^2 - a1^2) ) + (v / (1 - v) ) );
-    delta_V1 = (pi / 4)*(L1*( ( (2*a1) + delta_a1)*delta_a1) );
+function delta_V1 = findChangeInnerVolume(engine)
+    delta_a1 = ( ( (engine.P2 - engine.Po)*engine.a1*(1 - engine.v^2) ) / engine.Ey)*( ( (engine.b1^2 + engine.a1^2) / ...
+        (engine.b1^2 - engine.a1^2) ) + (engine.v / (1 - engine.v) ) );
+    delta_V1 = (pi / 4)*(engine.L1*( ( (2*engine.a1) + delta_a1)*delta_a1) );
 end
 
 % 6. Finding Efficiency [Eff] 
 % a. Find Pre-charged pressure in acculimlator [MPa]
-function Pa = findPa(Po, P2, V1N, delta_V1, V1A, V, v1P, voP, CP, BP, CH, BH, v1H, f)
-  Pa = (P2 / V1N)*(delta_V1 + V1N - V1A*( (Po / P2) - 1) ...
-       - (V*f / v1P)*(voP - CP*log10(1 + ((P2 - Po) / BP) ) - v1P) + ...
-       ((V*(1 - f) - V1A) / v1H)*CH*log10(1 + ((P2 - Po) / BH) ));  
+function Pa = findPa(engine)
+  Pa = (engine.P2 / engine.V1N)*(engine.delta_V1 + engine.V1N - engine.V1A*( (engine.Po / engine.P2) - 1) ...
+       - (engine.V*engine.f / engine.v1P)*(engine.voP - engine.CP*log10(1 + ((engine.P2 - engine.Po) / engine.BP) ) - engine.v1P) + ...
+       ((engine.V*(1 - engine.f) - engine.V1A) / engine.v1H)*engine.CH*log10(1 + ((engine.P2 - engine.Po) / engine.BH) ));  
 end
 
 % b. find the total energy stored [Est]
-function Est = findEst(Pa, V1N, mPCM, rhoL, rhoS)
-    Est = -Pa*1e6*V1N*log(1 - (mPCM / V1N)*((1 / rhoL) - (1 / rhoS)) );
+function Est = findEst(engine)
+    Est = -engine.Pa*1e6*engine.V1N*log(1 - (engine.mPCM / engine.V1N)*((1 / engine.rhoL) - (1 /engine. rhoS)) );
 end
 
 % c. Find total thermal energy absorbed by PCM in 1 melting/freezing cycle
 % [Qin]
-function Qin = findQin(Tlow, Thigh, Tm, mPCM, csd, Lh, cld)
-    Qin = mPCM*csd*(Tm - Tlow) + mPCM*Lh + mPCM*cld*(Thigh - Tm);
+function Qin = findQin(engine)
+    Qin = engine.mPCM*engine.csd*(engine.Tm - engine.Tlow) + engine.mPCM*engine.Lh + engine.mPCM*engine.cld*(engine.Thigh - engine.Tm);
 end
 
 % d. find the theorectical Efficiency % [Eff] 
-function Eff = findEfficiency(Est, Qin)  
-    Eff = Est / (Qin*1e3) * 100;
+function Eff = findEfficiency(engine)  
+    Eff = engine.Est / (engine.Qin*1e3) * 100;
 end
 
 % This takes in all inputs and finds the Efficiency using all functions
 % above
-function Eff = findEfficiency2(T, Tlow, Thigh, Po, engine)  
-    [voP, v1P, VPCM] = specificVolPCM(T, engine.rhoS, engine.mPCM);
-    [V,V1A, V1H, mH] = findVolume(engine.a1, engine.L1, engine.ar, VPCM, engine.v1H, engine.f);
-    P2 = findPressure(Po, engine);
-    delta_V1 = findChangeInnerVolume(Po, engine.a1, engine.b1, engine.L1, engine.v, engine.Ey, engine.P2);
-    Pa = findPa(Po, P2, engine.V1N, delta_V1, V1A, V, v1P, voP, engine.CP, engine.BP, engine.CH, engine.BH, engine.v1H, engine.f);
-    Est = findEst(Pa, engine.V1N, engine.mPCM, engine.rhoL, engine.rhoS);
-    Qin = findQin(Tlow, Thigh, engine.Tm, engine.mPCM, engine.csd, engine.Lh, engine.cld);
-    Eff = Est / (Qin*1e3)*100;
+function Eff = findEfficiency2(engine)  
+    [engine.voP, engine.v1P, engine.VPCM] = specificVolPCM(engine);
+    [engine.V,engine.V1A, engine.V1H, engine.mH] = findVolume(engine);
+    engine.P2 = findPressure(engine);
+    engine.delta_V1 = findChangeInnerVolume(engine);
+    engine.Pa = findPa(engine);
+    engine.Est = findEst(engine);
+    engine.Qin = findQin(engine);
+    Eff = findEfficiency(engine);
 end
 
 %Pressure to Stress Equations

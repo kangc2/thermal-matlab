@@ -154,7 +154,7 @@ plot(parameter(2).param, parameter(2).efficiencies)
 % 3. validate using known inputs/outputs
 %% Functions
 % 1. Finding Specific Volume of PCM [vP]
-function [voP, v1P, VPCM] = specificVolPCM(T,rhoS, mPCM)
+function [voP, v1P, VPCM] = specificVolPCM(engine)
     % a. Find specific volume of PCM under ambient pressure Po [voP]
     voP = ( (1.0307e03 - ( 1.2596*(engine.T + 273.15) )  + ...
         (1.8186e-3* (engine.T + 273.15)^2) -(1.9555e-6* (engine.T + 273.15)^3) ) )^-1;
