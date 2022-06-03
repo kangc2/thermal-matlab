@@ -4,9 +4,9 @@ clc; close all; clear
 % CHECKLIST
 
 % 1. verify: order is the same in functions called - DONE
-% 2. verify: order of changing variables in sweep r right order, right
-% things r changed in loops
-% 3. validate using known inputs/outputs
+% 2. verify: order of changing variables in sweep r right order, right 
+% things r changed in loops- DONE
+% 3. validate using known inputs/outputs - done
 
 %% Define Intial Structure: get all inputs in an 'engine' structure
 % Thermal Engine from our Thermal_Engine code
@@ -30,12 +30,11 @@ engine.a1 = engine.b1 - 2*engine.t; % Internal diameter of the cylinder [m]
 
 engine.Ey = 105e03; % Young's Modulus [MPa]
 engine.v = 0.33; % Poisson's ratio
-engine.yield = 340; % Compressive/Tensile Yield Stress (from google) [MPa]
+engine.yield = 340; % Compressive/Tensile Yield Stress (from google) / Factor of Safety [MPa]
 
 % -> Material Properties of PCM
 engine.delta_rho = 70;
 engine.rhoL = 773; % Density of PCM - Liquid phase [kg/m3]
-% engine.rhoS = 864; % Density of PCM - Solid phase [kg/m3] 
 engine.rhoS = engine.rhoL + engine.delta_rho; %TTTTHIIISSSSSSSSS
 
 engine.f = 0.6557; %Volume fraction of PCM
@@ -62,6 +61,7 @@ engine.V1N = 2e-03; % Initial Volume of N2 gas
 engine.ar = 6.573 / 100; % Volume fraction of residual air
 % mL -> m^3 = 1e-6
 engine.desiredWork = 6.096*248*1e-3; %Work needed in float = P*delta_V [MPa*m^3*1e3 = kJ]
+
 %% Define Outputs in 'engine' structure using Functions
 % 1 Find specific volume of PCM under ambient pressure Po, volume and mass of PCM [voP]
 [engine.voP, engine.v1P, engine.VPCM] = specificVolPCM(engine);
@@ -86,7 +86,9 @@ engine.Work = engine.Est / 1000; % Est from [J] to [kJ]
 % takes in all the inputs at once
 
 engine.Eff2 = findEfficiency2(engine);
-stress = PtoStress(engine);
+engine.stress = PtoStress(engine);
+engine.FoS = engine.stress / (engine.yield); % Factor of Safety
+
 engine
 
 %% Loops thru every parameter and returns a structured data for each parameter
@@ -96,15 +98,14 @@ engine
 % includes all the parameters we want to test via structures
 % Field name, lowerbound, upperbound, original value, step size (delta)
 input_range.L1 = [0.2, 1.3, engine.L1, 21];
-input_range.b1 = [0.17, 0.2, engine.b1, 21];
+input_range.b1 = [0.12, 0.2, engine.b1, 21];
 input_range.Lh = [210, 280, engine.Lh, 21];
-input_range.Tm = [5.5, 25, engine.Tm, 21];
+input_range.Tm = [5.5, 20, engine.Tm, 21];
 input_range.rhoL = [720, 800, engine.rhoL, 21];
 input_range.f = [0, 1, engine.f, 21];
 
 fields = string(fieldnames(input_range));
 
-% delta = 21; % number of steps between upper and lower bounds, 
 % ^^NOTE: we can put this into the structure field list, so we can have different values of delta for each parameter
 original = engine; % to reconvert the engine back to its original values when the second for loop finishes
 % For loop that goes thru every variable we want to change
@@ -155,6 +156,7 @@ for i = 1:length(parameter)
     xlabel(parameter(i).name)
     ylabel('Efficiency [%]')
 end
+
 %% Functions
 % 1. Finding Specific Volume of PCM [vP]
 function [voP, v1P, VPCM] = specificVolPCM(engine)
@@ -257,14 +259,6 @@ function stress_vm = PtoStress(engine)
     stress_vm = sqrt(((stress_tan - stress_rad)^2 + (stress_rad - stress_long)^2 ...
     + (stress_long - stress_tan)^2) / 2);
 end
-
-% Work
-% W = P*V
-
-    % W = Needed work to get to @ desired depth 
-    % P = Highest Pressure @ needed depth 
-    % V = change of volume of HF in accumulator/bladder? (248mL in typical argo float)
-    
 
 
 % Energy Equation
