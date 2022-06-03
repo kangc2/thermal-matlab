@@ -1,14 +1,7 @@
-% Sensativity Analysis: Same as Parameters_Script_Structures
+% Sensativity Analysis of MATLAB Model of our PCM engine
 clc; close all; clear
 
-% CHECKLIST
-
-% 1. verify: order is the same in functions called - DONE
-% 2. verify: order of changing variables in sweep r right order, right 
-% things r changed in loops- DONE
-% 3. validate using known inputs/outputs - done
-
-%% Define Intial Structure: get all inputs in an 'engine' structure
+%% Define Intial Struct 'engine': has all the baseline parameters of our intial engine
 % Thermal Engine from our Thermal_Engine code
 % The baseline of our model
 % Note: make sure the field name is right (voH vs. VoH)
@@ -62,7 +55,7 @@ engine.ar = 6.573 / 100; % Volume fraction of residual air
 % mL -> m^3 = 1e-6
 engine.desiredWork = 6.096*248*1e-3; %Work needed in float = P*delta_V [MPa*m^3*1e3 = kJ]
 
-%% Define Outputs in 'engine' structure using Functions
+%% Define Outputs in 'engine' using Functions
 % 1 Find specific volume of PCM under ambient pressure Po, volume and mass of PCM [voP]
 [engine.voP, engine.v1P, engine.VPCM] = specificVolPCM(engine);
 % 3. Find inner volume of cylinder, Volume fraction of air and PCM 
@@ -82,43 +75,55 @@ engine.Eff = findEfficiency(engine);
 engine.Work = engine.Est / 1000; % Est from [J] to [kJ]
 
 %% Find Efficiency: get efficiency using all of our inputs
-% adds a new structure field Eff2, same as Eff, but using function that
+% adds a new struct field Eff2, same as Eff, but using function that
 % takes in all the inputs at once
-
 engine.Eff2 = findEfficiency2(engine);
+
+% Finds the stress of the pcm hull using the Pressure to Stress function
 engine.stress = PtoStress(engine);
 engine.FoS = engine.stress / (engine.yield); % Factor of Safety
 
-engine
+engine % prints engine struct
 
-%% Loops thru every parameter and returns a structured data for each parameter
-%create a new structure 'parameter' to add in all our of tests into structures
+%% Sensativity Analysis starts here: Loops thru every parameter and returns a structured data for each parameter
+%create a new struct 'parameter' to add in all our of tests into structures
 
-% Parameters to change: a new structure called input_range
-% includes all the parameters we want to test via structures
-% Field name, lowerbound, upperbound, original value, step size (delta)
+% vvv CAN EDIT SENSATIVITY ANALYSIS HERE vvv
+% Add in what parameters we want to change and vary in a new struct
+% 'input_range'
+% variable name = 'input_range.VARIABLE_NAME' (i.e. 'L1', 'b1')
+% Fields: [lowerbound value, upperbound value, original value, step size between bounds (delta)]
 input_range.L1 = [0.2, 1.3, engine.L1, 21];
 input_range.b1 = [0.12, 0.2, engine.b1, 21];
 input_range.Lh = [210, 280, engine.Lh, 21];
 input_range.Tm = [5.5, 20, engine.Tm, 21];
 input_range.rhoL = [720, 800, engine.rhoL, 21];
 input_range.f = [0, 1, engine.f, 21];
+% ^^^ can comment out or add in any new variables to check thru here ^^^
 
+% Get all the fields in struct to prepare for the for loop (sensativity
+% analysis)
 fields = string(fieldnames(input_range));
 
-% ^^NOTE: we can put this into the structure field list, so we can have different values of delta for each parameter
-original = engine; % to reconvert the engine back to its original values when the second for loop finishes
-% For loop that goes thru every variable we want to change
-for j = 1:length(fields) % For each parameter we want to change
+original = engine; % defining a new engine to match the original 'engine' structure
+% for reconverting the values in the loop back to its original values when the second for loop finishes
+
+
+% This For loop goes thru every variable we want to change in the range
+for j = 1:length(fields) % loops through each parameter we want to change
+    % Defines which parameter we are at
     input = input_range.(fields(j)); % get the information from each field in the structure
     l = input(1); % lower bound value
     u = input(2); % upper bound value
-    delta = input(4);
-    j % check at which variable is passing thru
+    delta = input(4); % step size of each value
+    
+    j % prints which number of the loop we are at
 
     newParam = []; % this is all the changed values for each variable goes
     newEff = []; % this is where each efficiency value is for each variable
    
+    % This for loop goes through each new value of that parameter and
+    % stores all the data into a new structure called 'parameter'
     for i= 0:delta
        % Find what the value is for the changing variable
         z = ((u - l) / delta) * i;
@@ -138,18 +143,21 @@ for j = 1:length(fields) % For each parameter we want to change
         newEff = [newEff, answer];
     end
     
-   % adds into a new 'parameter' structure
+   % Now add into a new  struct called 'parameter'
    % New structure: parameter
    % fields: name, parameter, efficiency
    parameter(j).name = fields(j);
    parameter(j).param = newParam;
    parameter(j).efficiencies = newEff;
    
-   original = engine; % to reconvert the engine back to its original values when the second for loop finishes
-
-%    original.(fields(j)) = input(3); % reverts the value back to its original value
+   original = engine; % to reconvert all the parameter changes back to its original values when the second for loop finishes
 end
-%%
+
+% COMMENTED OUT: Prints out all the data into an excel file
+% writetable(struct2table(parameter), 'someexcelfile.xlsx')
+
+
+%% This prints out plots of all the parameters
 for i = 1:length(parameter)
     figure
     plot(parameter(i).param, parameter(i).efficiencies)
@@ -170,11 +178,9 @@ end
 
 % 3. Find inner volume of cylinder, Volume fraction of air and PCM 
 function [V, V1A, V1H, mH] = findVolume(engine)
-%     V = pi*engine.L1*( (engine.b1 / 2)^2 - (engine.a1 / 2)^2 ); % Inner volume of Cylinder
     V = pi*engine.L1*( (engine.a1 / 2)^2 ); % Inner volume of Cylinder
 
     V1A = engine.ar*V; % Volume of residual air
-%     f = VPCM / V; % volume fraction of PCM DONT NEED THIS ANYMORE?
     V1H = ( V*(1 - engine.f) ) - V1A; % volume of HF at state 1
     mH = ( (V*(1 - engine.f) ) - V1A) / engine.v1H; % mass of HF
 end
@@ -260,7 +266,3 @@ function stress_vm = PtoStress(engine)
     + (stress_long - stress_tan)^2) / 2);
 end
 
-
-% Energy Equation
-
-% writetable(struct2table(parameter), 'someexcelfile.xlsx')
